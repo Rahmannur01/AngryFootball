@@ -72,13 +72,11 @@ class MenuScene extends Phaser.Scene {
             btnText.setScale(1);
         });
 
-        // ⭐ ГЛАВНОЕ: Обработка клика/тапа
         hitZone.on('pointerdown', (pointer) => {
             console.log('Button clicked!');
             this.startGame();
         });
 
-        // ⭐ ДОПОЛНИТЕЛЬНО: для touch-устройств
         hitZone.on('touchstart', (pointer) => {
             console.log('Touch detected!');
             this.startGame();
@@ -172,12 +170,10 @@ class MenuScene extends Phaser.Scene {
         if (this._isStarting) return;
         this._isStarting = true;
 
-        console.log('🚀 Starting game...');
+        console.log('Starting game...');
 
-        // Сначала блокируем ориентацию (если возможно)
         this.lockOrientation();
 
-        // Затем запрашиваем Fullscreen
         this.requestFullscreenAndStart();
     }
 
@@ -224,18 +220,14 @@ class MenuScene extends Phaser.Scene {
         console.log('Using fullscreen method:', method);
 
         try {
-            // Вызываем fullscreen
             const result = element[method]();
 
-            // Проверяем, вернул ли Promise
             if (result && typeof result.then === 'function') {
-                // Это Promise
                 result.then(() => {
-                    console.log('✅ Fullscreen activated');
+                    console.log('Fullscreen activated');
                     this.launchGame();
                 }).catch((err) => {
                     console.warn('Fullscreen denied:', err);
-                    // На мобильных часто блокирует, но мы всё равно запускаем игру
                     this.launchGame();
                 });
             } else {
@@ -247,7 +239,6 @@ class MenuScene extends Phaser.Scene {
             }
         } catch (error) {
             console.warn('Fullscreen error:', error);
-            // Всё равно запускаем игру
             this.launchGame();
         }
     }
@@ -271,7 +262,7 @@ class MenuScene extends Phaser.Scene {
             if (screen.orientation && screen.orientation.lock) {
                 screen.orientation.lock('landscape')
                     .then(() => {
-                        console.log('✅ Orientation locked to landscape');
+                        console.log('Orientation locked to landscape');
                     })
                     .catch((err) => {
                         console.warn('Orientation lock failed:', err);
@@ -292,7 +283,6 @@ class MenuScene extends Phaser.Scene {
         const container = document.getElementById('game-container');
         if (!container) return;
 
-        // Проверяем, нужно ли поворачивать
         const isPortrait = window.innerHeight > window.innerWidth;
 
         if (isPortrait) {
