@@ -33,7 +33,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
     create() {
         // [start-create]
 
-        this.screenWidth = 2000;
+        this.screenWidth = 1800;
         this.screenHeight = 1080;
 
         this.ballStartPos = { x: 300, y: 500 };
@@ -1057,7 +1057,7 @@ const config = {
     "scale": {
         "mode": 3,
         "autoCenter": 1,
-        "width": 2000,
+        "width": 1800,
         "height": 1080
     },
     "input": {
