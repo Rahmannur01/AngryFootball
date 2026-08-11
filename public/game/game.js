@@ -33,7 +33,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
     create() {
         // [start-create]
 
-        this.screenWidth = 1800;
+        this.screenWidth = 2000;
         this.screenHeight = 1080;
 
         this.ballStartPos = { x: 300, y: 500 };
@@ -1053,14 +1053,12 @@ class scene_JGRZhYTj extends Phaser.Scene {
         const x = this.scale.width - btnSize - padding;
         const y = padding;
 
-        // фон кнопки
         const btnBg = this.add.graphics();
         btnBg.fillStyle(0x000000, 0.5);
         btnBg.fillRoundedRect(x, y, btnSize, btnSize, 8);
         btnBg.setDepth(100);
-        btnBg.setScrollFactor(0); // остаётся на месте при скролле камеры, если есть
+        btnBg.setScrollFactor(0);
 
-        // иконка (простая рамка-«экран», рисуем вручную, без картинки)
         const icon = this.add.graphics();
         icon.lineStyle(2, 0xffffff, 1);
         const iconPad = 8;
@@ -1068,7 +1066,6 @@ class scene_JGRZhYTj extends Phaser.Scene {
         icon.setDepth(101);
         icon.setScrollFactor(0);
 
-        // кликабельная зона
         const hitZone = this.add.zone(x, y, btnSize, btnSize)
             .setOrigin(0, 0)
             .setInteractive({ useHandCursor: true })
@@ -1079,7 +1076,6 @@ class scene_JGRZhYTj extends Phaser.Scene {
             this.toggleFullscreen();
         });
 
-        // визуальный фидбек при наведении
         hitZone.on('pointerover', () => {
             btnBg.clear();
             btnBg.fillStyle(0x000000, 0.8);
@@ -1111,7 +1107,7 @@ const config = {
     "scale": {
         "mode": 3,
         "autoCenter": 1,
-        "width": 1800,
+        "width": 2000,
         "height": 1080
     },
     "input": {
