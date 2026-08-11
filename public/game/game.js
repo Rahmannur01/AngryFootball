@@ -708,6 +708,8 @@ class scene_JGRZhYTj extends Phaser.Scene {
         this.setupCollisionDetach();
         this.setupParticles();
 
+        this.setupFullscreenButton();
+
         // [end-create]
     }
 
@@ -850,10 +852,10 @@ class scene_JGRZhYTj extends Phaser.Scene {
                     const otherBody = bodies.find(b => b !== this.Ball.body);
                     this.detachAndLaunch(otherBody, this.Ball.body);
 
-                    if(bodyA.gameObject == this.Ball && bodyB.gameObject == this.FootballGoal){
-                        this.spawnHitParticles(this.screenWidth/2, this.screenHeight/2, 0x48ff54, 1000);
-                        this.Ball.setVelocity(0,0);
-                        this.Ball.setAngularVelocity(0,0);
+                    if (bodyA.gameObject == this.Ball && bodyB.gameObject == this.FootballGoal) {
+                        this.spawnHitParticles(this.screenWidth / 2, this.screenHeight / 2, 0x48ff54, 1000);
+                        this.Ball.setVelocity(0, 0);
+                        this.Ball.setAngularVelocity(0, 0);
                         this.Ball.setPosition(this.ballStartPos.x, this.ballStartPos.y);
                         this.ballIsPushed = false;
                     }
@@ -897,7 +899,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
             this.spawnHitParticles(body.position.x, body.position.y, 0xff0000, 100);
 
             const constraint = this.riderConstraintMap.get(body);
-            if(constraint){
+            if (constraint) {
                 this.matter.world.removeConstraint(constraint);
                 this.riderConstraintMap.delete(body);
             }
@@ -907,7 +909,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
             this.removeRider(gameObj, body);
         }
 
-        
+
     }
     removeRider(gameObj, body) {
         this.matter.world.remove(body);
@@ -1044,6 +1046,58 @@ class scene_JGRZhYTj extends Phaser.Scene {
         const color = ratio > 0.5 ? 0x00ff00 : (ratio > 0 ? 0xffaa00 : 0xff0000);
         bar.fillStyle(color, 1);
         bar.fillRect(x, y, width * ratio, height);
+    }
+    setupFullscreenButton() {
+        const btnSize = 40;
+        const padding = 15;
+        const x = this.scale.width - btnSize - padding;
+        const y = padding;
+
+        // фон кнопки
+        const btnBg = this.add.graphics();
+        btnBg.fillStyle(0x000000, 0.5);
+        btnBg.fillRoundedRect(x, y, btnSize, btnSize, 8);
+        btnBg.setDepth(100);
+        btnBg.setScrollFactor(0); // остаётся на месте при скролле камеры, если есть
+
+        // иконка (простая рамка-«экран», рисуем вручную, без картинки)
+        const icon = this.add.graphics();
+        icon.lineStyle(2, 0xffffff, 1);
+        const iconPad = 8;
+        icon.strokeRect(x + iconPad, y + iconPad, btnSize - iconPad * 2, btnSize - iconPad * 2);
+        icon.setDepth(101);
+        icon.setScrollFactor(0);
+
+        // кликабельная зона
+        const hitZone = this.add.zone(x, y, btnSize, btnSize)
+            .setOrigin(0, 0)
+            .setInteractive({ useHandCursor: true })
+            .setScrollFactor(0);
+        hitZone.setDepth(102);
+
+        hitZone.on('pointerdown', () => {
+            this.toggleFullscreen();
+        });
+
+        // визуальный фидбек при наведении
+        hitZone.on('pointerover', () => {
+            btnBg.clear();
+            btnBg.fillStyle(0x000000, 0.8);
+            btnBg.fillRoundedRect(x, y, btnSize, btnSize, 8);
+        });
+        hitZone.on('pointerout', () => {
+            btnBg.clear();
+            btnBg.fillStyle(0x000000, 0.5);
+            btnBg.fillRoundedRect(x, y, btnSize, btnSize, 8);
+        });
+    }
+
+    toggleFullscreen() {
+        if (this.scale.isFullscreen) {
+            this.scale.stopFullscreen();
+        } else {
+            this.scale.startFullscreen();
+        }
     }
 }
 // [end-scene]
