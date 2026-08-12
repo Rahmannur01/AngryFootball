@@ -1,6 +1,140 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: black;
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+}
+
 #game-container {
     width: 100vw;
-    height: 100vh;   /* fallback для старых браузеров без поддержки dvh */
-    height: 100dvh;  /* динамическая высота: реагирует на скрытие/появление адресной строки */
+    height: 100vh;
+    /* fallback для старых браузеров без поддержки dvh */
+    height: 100dvh;
+    /* динамическая высота: реагирует на скрытие/появление адресной строки */
     display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ==================== Стартовое меню ==================== */
+
+#menu-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        radial-gradient(circle at 50% 30%, rgba(255, 163, 72, 0.25), transparent 60%),
+        #12151c;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.menu-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    padding: 24px;
+    text-align: center;
+}
+
+.menu-title {
+    margin: 0;
+    font-size: clamp(32px, 8vw, 56px);
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-shadow: 0 0 24px rgba(255, 163, 72, 0.5);
+}
+
+.play-btn {
+    appearance: none;
+    border: none;
+    cursor: pointer;
+    padding: 18px 56px;
+    font-size: clamp(18px, 5vw, 24px);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #12151c;
+    background: #ffa348;
+    border-radius: 999px;
+    box-shadow: 0 8px 24px rgba(255, 163, 72, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.play-btn:active {
+    transform: scale(0.96);
+    box-shadow: 0 4px 12px rgba(255, 163, 72, 0.35);
+}
+
+.loading-text {
+    display: none;
+    margin: 0;
+    color: #ffa348;
+    font-size: 16px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    animation: pulse-loading 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-loading {
+
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+/* ==================== Оверлей "поверните телефон" ==================== */
+
+#rotate-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    background: #12151c;
+    color: #ffffff;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+#rotate-overlay .rotate-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    animation: rotate-hint 1.6s ease-in-out infinite;
+}
+
+#rotate-overlay p {
+    margin: 0;
+    font-size: 18px;
+    color: #ffa348;
+}
+
+@keyframes rotate-hint {
+
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+
+    50% {
+        transform: rotate(90deg);
+    }
 }

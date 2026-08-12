@@ -1,7 +1,6 @@
 // [scene:scene_JGRZhYTj]
 class scene_JGRZhYTj extends Phaser.Scene {
-    // Размер игрового мира — фиксирован, не зависит от экрана.
-    // Все позиции объектов в create() заданы относительно этих величин.
+    // Размер игрового мира
     static WORLD_WIDTH = 2000;
     static WORLD_HEIGHT = 1080;
 
@@ -22,17 +21,16 @@ class scene_JGRZhYTj extends Phaser.Scene {
     // Камера: скорость (лерп) слежения за мячом по X и во сколько раз
     // можно отдалить/приблизить камеру от базового масштаба (1 = 100%)
     static CAMERA_FOLLOW_LERP_X = 0.08;
-    static CAMERA_MIN_ZOOM = 0.35;
+    static CAMERA_MIN_ZOOM = 0.38;
     static CAMERA_MAX_ZOOM = 2;
 
-    // Кнопка "полный экран" (в screen-пикселях, пересчитывается под зум камеры)
-    static FULLSCREEN_BTN_SIZE = 100;
-    static FULLSCREEN_BTN_PADDING = 15;
-    static FULLSCREEN_BTN_RADIUS = 8;
-    static FULLSCREEN_ICON_PADDING = 8;
-    static FULLSCREEN_ICON_LINE_WIDTH = 2;
-    static FULLSCREEN_BTN_IDLE_ALPHA = 0.5;
-    static FULLSCREEN_BTN_HOVER_ALPHA = 0.8;
+    // Кнопка "рестарт" 
+    static RESTART_BTN_SIZE = 56;
+    static RESTART_BTN_PADDING = 12;
+    static RESTART_BTN_RADIUS = 8;
+    static RESTART_FONT_SIZE = 28;
+    static RESTART_BTN_IDLE_ALPHA = 0.5;
+    static RESTART_BTN_HOVER_ALPHA = 0.8;
 
     constructor() {
         super({ key: 'scene_JGRZhYTj' });
@@ -681,8 +679,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
         this.FootballGoal.setOrigin(0.37, 0.5);
         this.FootballGoal.setFlipX(true);
         this.FootballGoal.setFlipY(false);
-        // Границы физического мира — всегда фиксированного размера,
-        // не зависят от реального размера экрана (см. static-константы).
+
         this.matter.world.setBounds(0, 0, scene_JGRZhYTj.WORLD_WIDTH, scene_JGRZhYTj.WORLD_HEIGHT);
 
         this.setupCamera();
@@ -728,7 +725,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
             // Динамическая скорость (чем больше перетаскивание, тем сильнее удар)
             const maxDrag = 300; // Максимальное расстояние для полной силы
             const power = Phaser.Math.Clamp(dragDistance / maxDrag, 0, 1); // 0-1
-            const finalSpeed = this.speed * power; // Динамическая скорость!
+            const finalSpeed = this.speed * power;
 
             this.Ball.setVelocity(
                 Math.cos(angle) * finalSpeed,
@@ -749,24 +746,15 @@ class scene_JGRZhYTj extends Phaser.Scene {
         this.setupCollisionDetach();
         this.setupParticles();
 
-        this.setupFullscreenButton();
 
-        // При ресайзе окна/повороте экрана пересчитываем только зум камеры
-        // и позицию UI-кнопки — сам игровой мир и физика не трогаются.
+        this.setupRestartButton();
+
+        // При ресайзе окна/повороте экрана пересчитываем зум камеры
+        // и позицию кнопки рестарта - сам игровой мир и физика не трогаются.
         this.scale.on('resize', () => {
             this.updateCameraZoom();
-            this.repositionFullscreenButton();
+            this.repositionRestartButton();
         });
-        window.addEventListener('orientationchange', () => {
-            // Даем время на завершение анимации поворота
-            setTimeout(() => {
-                this.updateCameraZoom();
-                this.repositionFullscreenButton();
-            }, 300);
-        });
-
-        this.updateCameraZoom();
-        this.repositionFullscreenButton();
 
         // [end-create]
     }
@@ -836,7 +824,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
             const tween = this.tweens.add({
                 targets: wheel,
                 angle: 360,              // вращаем на 360 градусов
-                duration: 7000,          // за 2 секунды
+                duration: 7000,          
                 repeat: -1,              // бесконечно
                 ease: 'Linear'           // равномерное вращение
             });
@@ -1062,7 +1050,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
     }
 
     setupRiderHealth() {
-        const maxHp = 2; // сколько ударов выдерживает защитник
+        const maxHp = 2;
 
         this.riderHealthMap = new Map(); // body -> { hp, maxHp, bar }
         this.allEnemyes = [this.Enemy, this.Enemy_2, this.Enemy_3];
@@ -1105,80 +1093,9 @@ class scene_JGRZhYTj extends Phaser.Scene {
         bar.fillStyle(color, 1);
         bar.fillRect(x, y, width * ratio, height);
     }
-    setupFullscreenButton() {
-        this.fullscreenBtnBg = this.add.graphics();
-        this.fullscreenBtnBg.setDepth(100);
-        this.fullscreenBtnBg.setScrollFactor(0);
-
-        this.fullscreenBtnIcon = this.add.graphics();
-        this.fullscreenBtnIcon.setDepth(101);
-        this.fullscreenBtnIcon.setScrollFactor(0);
-
-        this.fullscreenHitZone = this.add.zone(0, 0, 1, 1)
-            .setOrigin(0, 0)
-            .setInteractive({ useHandCursor: true })
-            .setScrollFactor(0);
-        this.fullscreenHitZone.setDepth(102);
-
-        this.fullscreenHitZone.on('pointerdown', () => {
-            this.toggleFullscreen();
-        });
-        this.fullscreenHitZone.on('pointerover', () => {
-            this.drawFullscreenButton(scene_JGRZhYTj.FULLSCREEN_BTN_HOVER_ALPHA);
-        });
-        this.fullscreenHitZone.on('pointerout', () => {
-            this.drawFullscreenButton(scene_JGRZhYTj.FULLSCREEN_BTN_IDLE_ALPHA);
-        });
-
-        this.repositionFullscreenButton();
-    }
-
-    // Кнопка закреплена на экране (scrollFactor 0), но т.к. зум камеры
-    // домножает мировые координаты, пересчитываем размер/позицию в мировых
-    // единицах так, чтобы на экране кнопка всегда была одного и того же размера.
-    repositionFullscreenButton() {
-        if (!this.fullscreenBtnBg) return;
-
-        const zoom = this.cameras.main.zoom;
-        const size = scene_JGRZhYTj.FULLSCREEN_BTN_SIZE / zoom;
-        const padding = scene_JGRZhYTj.FULLSCREEN_BTN_PADDING / zoom;
-
-        this.fullscreenBtnX = padding;
-        this.fullscreenBtnY = padding;
-        this.fullscreenBtnSize = size;
-
-        this.fullscreenHitZone.setPosition(this.fullscreenBtnX, this.fullscreenBtnY);
-        this.fullscreenHitZone.setSize(size, size);
-
-        this.drawFullscreenButton(scene_JGRZhYTj.FULLSCREEN_BTN_IDLE_ALPHA);
-    }
-
-    drawFullscreenButton(alpha) {
-        const zoom = this.cameras.main.zoom;
-        const x = this.fullscreenBtnX;
-        const y = this.fullscreenBtnY;
-        const size = this.fullscreenBtnSize;
-        const iconPad = scene_JGRZhYTj.FULLSCREEN_ICON_PADDING / zoom;
-
-        this.fullscreenBtnBg.clear();
-        this.fullscreenBtnBg.fillStyle(0x000000, alpha);
-        this.fullscreenBtnBg.fillRoundedRect(x, y, size, size, scene_JGRZhYTj.FULLSCREEN_BTN_RADIUS / zoom);
-
-        this.fullscreenBtnIcon.clear();
-        this.fullscreenBtnIcon.lineStyle(scene_JGRZhYTj.FULLSCREEN_ICON_LINE_WIDTH / zoom, 0xffffff, 1);
-        this.fullscreenBtnIcon.strokeRect(x + iconPad, y + iconPad, size - iconPad * 2, size - iconPad * 2);
-    }
-
-    toggleFullscreen() {
-        if (this.scale.isFullscreen) {
-            this.scale.stopFullscreen();
-        } else {
-            this.scale.startFullscreen();
-        }
-    }
 
     // Мир фиксированного размера (WORLD_WIDTH x WORLD_HEIGHT) виден через камеру,
-    // которая масштабируется под реальную высоту экрана — так высота всегда
+    // которая масштабируется под реальную высоту экрана, так высота всегда
     // заполнена без полос и без обрезки, а по ширине камера скроллит вслед за мячом.
     setupCamera() {
         const camera = this.cameras.main;
@@ -1188,6 +1105,69 @@ class scene_JGRZhYTj extends Phaser.Scene {
 
         // lerpY = 0 — камера не двигается по вертикали, только по X вслед за мячом.
         camera.startFollow(this.Ball, true, scene_JGRZhYTj.CAMERA_FOLLOW_LERP_X, 0);
+    }
+
+    setupRestartButton() {
+        this.restartBtnBg = this.add.graphics();
+        this.restartBtnBg.setDepth(100);
+        this.restartBtnBg.setScrollFactor(0);
+
+        this.restartBtnText = this.add.text(0, 0, 'R', {
+            fontFamily: 'Arial, sans-serif',
+            fontStyle: 'bold',
+            color: '#ffffff'
+        }).setOrigin(0.5);
+        this.restartBtnText.setDepth(101);
+        this.restartBtnText.setScrollFactor(0);
+
+        this.restartHitZone = this.add.zone(0, 0, 1, 1)
+            .setOrigin(0, 0)
+            .setInteractive({ useHandCursor: true })
+            .setScrollFactor(0);
+        this.restartHitZone.setDepth(102);
+
+        this.restartHitZone.on('pointerdown', () => {
+            this.scene.restart();
+        });
+        this.restartHitZone.on('pointerover', () => {
+            this.drawRestartButton(scene_JGRZhYTj.RESTART_BTN_HOVER_ALPHA);
+        });
+        this.restartHitZone.on('pointerout', () => {
+            this.drawRestartButton(scene_JGRZhYTj.RESTART_BTN_IDLE_ALPHA);
+        });
+
+        this.repositionRestartButton();
+    }
+
+    repositionRestartButton() {
+        if (!this.restartBtnBg) return;
+
+        const zoom = this.cameras.main.zoom;
+        const size = scene_JGRZhYTj.RESTART_BTN_SIZE / zoom;
+        const padding = scene_JGRZhYTj.RESTART_BTN_PADDING / zoom;
+
+        this.restartBtnX = padding;
+        this.restartBtnY = padding;
+        this.restartBtnSize = size;
+
+        this.restartHitZone.setPosition(this.restartBtnX, this.restartBtnY);
+        this.restartHitZone.setSize(size, size);
+
+        this.drawRestartButton(scene_JGRZhYTj.RESTART_BTN_IDLE_ALPHA);
+    }
+
+    drawRestartButton(alpha) {
+        const zoom = this.cameras.main.zoom;
+        const x = this.restartBtnX;
+        const y = this.restartBtnY;
+        const size = this.restartBtnSize;
+
+        this.restartBtnBg.clear();
+        this.restartBtnBg.fillStyle(0x000000, alpha);
+        this.restartBtnBg.fillRoundedRect(x, y, size, size, scene_JGRZhYTj.RESTART_BTN_RADIUS / zoom);
+
+        this.restartBtnText.setFontSize(scene_JGRZhYTj.RESTART_FONT_SIZE / zoom);
+        this.restartBtnText.setPosition(x + size / 2, y + size / 2);
     }
 
     updateCameraZoom() {
@@ -1205,7 +1185,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
 const config = {
     "type": 0,
     "parent": "game-container",
-    "backgroundColor": "#000000",
+    "backgroundColor": "#ffa348",
     "transparent": false,
     "antialias": true,
     "disableContextMenu": true,
@@ -1238,7 +1218,7 @@ const config = {
             "enableSleeping": false
         }
     },
-    "scene": [MenuScene, scene_JGRZhYTj]
+    "scene": [scene_JGRZhYTj]
 };
 
 const game = new Phaser.Game(config);
