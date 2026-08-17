@@ -36,20 +36,53 @@ async function requestLandscapeLock() {
     }
 }
 
-function showRotateOverlayIfNeeded() {
+let orientationSettleTimer = null;
+let isGamePaused = false;
+
+function applyOrientationState() {
     if (isPortrait()) {
         rotateOverlay.style.display = 'flex';
-
-        const checkOrientation = () => {
-            if (!isPortrait()) {
-                rotateOverlay.style.display = 'none';
-                window.removeEventListener('resize', checkOrientation);
-                window.removeEventListener('orientationchange', checkOrientation);
-            }
-        };
-        window.addEventListener('resize', checkOrientation);
-        window.addEventListener('orientationchange', checkOrientation);
+        if (!isGamePaused && typeof game !== 'undefined') {
+            game.scene.pause('scene_JGRZhYTj');
+            isGamePaused = true;
+        }
+    } else {
+        rotateOverlay.style.display = 'none';
+        if (isGamePaused && typeof game !== 'undefined') {
+            game.scene.resume('scene_JGRZhYTj');
+            isGamePaused = false;
+        }
     }
+}
+
+function handleOrientationSettle() {
+    clearTimeout(orientationSettleTimer);
+    orientationSettleTimer = setTimeout(() => {
+        if (typeof game !== 'undefined' && game.scale) {
+            game.scale.refresh(); // пересчитывает canvas после того, как браузер домерил UI после поворота
+        }
+        applyOrientationState();
+    }, 300);
+}
+
+window.addEventListener('resize', handleOrientationSettle);
+window.addEventListener('orientationchange', handleOrientationSettle);
+
+// Выход/вход в fullscreen (например, через кнопку "E" в игре) меняет
+// реальную видимую высоту (появляется/скрывается адресная строка),
+// но не всегда надёжно вызывает 'resize' сам по себе - слушаем отдельно.
+document.addEventListener('fullscreenchange', handleOrientationSettle);
+document.addEventListener('webkitfullscreenchange', handleOrientationSettle);
+document.addEventListener('mozfullscreenchange', handleOrientationSettle);
+document.addEventListener('MSFullscreenChange', handleOrientationSettle);
+
+// Подстраховка: на некоторых мобильных браузерах появление/скрытие
+// адресной строки меняет только CSS (100dvh), не вызывая ни resize,
+// ни orientationchange, ни fullscreenchange. ResizeObserver ловит
+// изменение реального размера контейнера в любом случае.
+const gameContainerEl = document.getElementById('game-container');
+if (gameContainerEl && typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(handleOrientationSettle).observe(gameContainerEl);
 }
 
 playBtn.addEventListener('click', async () => {
@@ -61,6 +94,72 @@ playBtn.addEventListener('click', async () => {
 
     setTimeout(() => {
         menuOverlay.style.display = 'none';
-        showRotateOverlayIfNeeded();
+        applyOrientationState();
+
+        // Подстраховка: на некоторых мобильных браузерах первый замер
+        // размера контейнера бывает неточным (адресная строка ещё
+        // не устоялась). Форсируем пересчёт через короткую паузу.
+        if (typeof game !== 'undefined' && game.scale) {
+            setTimeout(() => game.scale.refresh(), 400);
+        }
     }, MENU_LOADING_DELAY_MS);
+});
+
+const restartButton = document.getElementById('restart-button');
+const fullscreenButton = document.getElementById('fullscreen-button');
+
+restartButton.addEventListener('pointerdown', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const scene = game.scene.getScene('scene_JGRZhYTj');
+
+    if (scene && scene.scene.isActive()) {
+        scene.scene.restart();
+    }
+});
+
+fullscreenButton.addEventListener('pointerdown', async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    fullscreenButton.blur();
+
+    const el = document.documentElement;
+
+    const isFullscreen = !!(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+    );
+
+    try {
+        if (isFullscreen) {
+            const exit =
+                document.exitFullscreen ||
+                document.webkitExitFullscreen ||
+                document.mozCancelFullScreen ||
+                document.msExitFullscreen;
+
+            if (exit) {
+                await exit.call(document);
+            }
+
+            return;
+        }
+
+        const request =
+            el.requestFullscreen ||
+            el.webkitRequestFullscreen ||
+            el.mozRequestFullScreen ||
+            el.msRequestFullscreen;
+
+        if (request) {
+            await request.call(el);
+        }
+
+    } catch (e) {
+        console.log('Fullscreen error:', e);
+    }
 });

@@ -15,9 +15,14 @@ body {
     /* fallback для старых браузеров без поддержки dvh */
     height: 100dvh;
     /* динамическая высота: реагирует на скрытие/появление адресной строки */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    /* центрирование убрано намеренно: canvas в RESIZE-режиме и так растягивается
+       точно под размер контейнера. Если на мобильном браузере размер вьюпорта
+       на миг рассинхронизирован (address bar/dvh), canvas может оказаться чуть
+       больше видимой области - flex-центрирование в этом случае обрезало бы
+       его края поровну, из-за чего UI-элементы в левом верхнем углу "уезжали"
+       визуально к центру экрана. */
+    overflow: hidden;
+    position: relative;
 }
 
 /* ==================== Стартовое меню ==================== */
@@ -125,6 +130,56 @@ body {
     margin: 0;
     font-size: 18px;
     color: #ffa348;
+}
+
+.game-ui-button {
+    position: absolute;
+
+    top: 12px;
+
+    width: 56px;
+    height: 56px;
+
+    padding: 0;
+
+    border: none;
+    border-radius: 9px;
+
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+
+    font-family: Arial, sans-serif;
+    font-size: 30px;
+    font-weight: bold;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    z-index: 1000;
+
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+
+    user-select: none;
+}
+
+#restart-button {
+    left: 12px;
+}
+
+#fullscreen-button {
+    left: 80px;
+}
+
+.game-ui-button:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.game-ui-button:active {
+    transform: scale(0.94);
 }
 
 @keyframes rotate-hint {

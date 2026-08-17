@@ -1,46 +1,57 @@
 // [scene:scene_JGRZhYTj]
 class scene_JGRZhYTj extends Phaser.Scene {
     // Размер игрового мира
-    static WORLD_WIDTH = 2000;
+    static WORLD_WIDTH = 2500;
     static WORLD_HEIGHT = 1080;
 
     // Пол (невидимый collision-объект под ногами)
     static FLOOR_Y = 1020;
-    static FLOOR_SCALE_X = 65;
+    static FLOOR_SCALE_X = 100;
     static FLOOR_SCALE_Y = 3.5;
 
     // Фон
-    static BACKGROUND_CENTER_Y = 530;
+    static BACKGROUND_CENTER_Y = 560;
     static BACKGROUND_SCALE_X = 1.2;
     static BACKGROUND_SCALE_Y = 1.5;
 
     // Футбольные ворота (стоят у правого края мира)
     static GOAL_X = 1930;
-    static GOAL_Y = 806;
+    static GOAL_Y = 860;
 
-    // Камера: скорость (лерп) слежения за мячом по X и во сколько раз
-    // можно отдалить/приблизить камеру от базового масштаба (1 = 100%)
     static CAMERA_FOLLOW_LERP_X = 0.08;
-    static CAMERA_MIN_ZOOM = 0.38;
-    static CAMERA_MAX_ZOOM = 2;
+    static CAMERA_MIN_ZOOM = 1;
+    static CAMERA_MAX_ZOOM = 4;
+    static CAMERA_SHAKE_DURATION = 200;
+    static CAMERA_SHAKE_INTESITY = 0.02;
+    static CAMERA_SHAKE_MIN_IMPACT_SPEED = 10;
 
-    // Кнопка "рестарт" 
-    static RESTART_BTN_SIZE = 56;
-    static RESTART_BTN_PADDING = 12;
-    static RESTART_BTN_RADIUS = 8;
-    static RESTART_FONT_SIZE = 28;
-    static RESTART_BTN_IDLE_ALPHA = 0.5;
-    static RESTART_BTN_HOVER_ALPHA = 0.8;
+    static CAMERA_AIM_ZOOM = 1.7; // Зум при прицеливании
+    static CAMERA_ZOOM_DURATION = 300; // Длительность анимации зума в мс
+    static CAMERA_SLOW_MOTION_ZOOM = 1.5;
+    static CAMERA_SLOW_MOTION_ZOOM_DURATION = 900;
+
+    static SLOW_MOTION_DURATION = 700;
+    static SLOW_MOTION_SCALE = 0.2;
+    static SLOW_MOTION_TRANSITION_IN = 200;
+    static SLOW_MOTION_TRANSITION_OUT = 200;
 
     constructor() {
         super({ key: 'scene_JGRZhYTj' });
-        this.speed = 40;
+        this.speed = 35;
         this.startPoint = null;
         this.aimGraphics = null;
 
         this.isMoving = false;
-    }
+        this.isCameraShaked = false;
+        this.isAiming = false;
 
+        this.zoomTween = null;
+        this.cameraInitialized = false;
+
+        this.isSlowMotion = false;
+        this.slowMoScale = 1;
+        this.slowMoTween = null;
+    }
 
     init() {
         // [start-init]
@@ -57,7 +68,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
         this.load.image('Obstacle_2', './assets/platformIndustrial_047.png');
         this.load.image('Enemy_1', './assets/38.png');
         this.load.image('Enemy_2', './assets/36.png');
-        this.load.image('Background', './assets/Background.png');
+        this.load.image('Background', './assets/Background_1.png');
         this.load.image('Goal', './assets/FootballGoal.png');
         // [end-preload]
     }
@@ -65,14 +76,14 @@ class scene_JGRZhYTj extends Phaser.Scene {
     create() {
         // [start-create]
 
-        // Мир всегда фиксированного размера (см. static-константы класса ниже).
-        // Под реальный экран подстраивается не мир, а камера — это безопасно
-        // для физики (Matter.js), т.к. позиции объектов никогда не пересчитываются.
+        // Мир всегда фиксированного размера
+        // Под реальный экран подстраивается не мир, а камера
         this.screenWidth = scene_JGRZhYTj.WORLD_WIDTH;
         this.screenHeight = scene_JGRZhYTj.WORLD_HEIGHT;
 
-        this.ballStartPos = { x: 300, y: 500 };
+        this.ballStartPos = { x: 350, y: 900 };
         this.ballIsPushed = false;
+
         this.Ball = this.matter.add.image(this.ballStartPos.x, this.ballStartPos.y, 'Ball', null, {
             "isStatic": false,
             "friction": 0.1,
@@ -583,7 +594,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
         this.Enemy_3.setFlipY(false);
 
         // Фон и все игровые объекты живут в мире фиксированного размера
-        // (WORLD_WIDTH x WORLD_HEIGHT) — под экран подстраивается камера, а не мир.
+        // (WORLD_WIDTH x WORLD_HEIGHT) = под экран подстраивается камера, а не мир.
         this.Background = this.add.image(scene_JGRZhYTj.WORLD_WIDTH / 2, scene_JGRZhYTj.BACKGROUND_CENTER_Y, 'Background');
         this.Background.setName('Background');
         this.Background.setAlpha(1);
@@ -597,6 +608,16 @@ class scene_JGRZhYTj extends Phaser.Scene {
         this.Background.setOrigin(0.5, 0.5);
         this.Background.setFlipX(false);
         this.Background.setFlipY(false);
+
+        // Запасная копия только для области за боковыми краями мира на очень
+        // широких экранах
+        this.BackgroundEdgeFill = this.add.image(
+            scene_JGRZhYTj.WORLD_WIDTH / 2,
+            scene_JGRZhYTj.BACKGROUND_CENTER_Y,
+        );
+        this.BackgroundEdgeFill.setDepth(-2);
+        this.BackgroundEdgeFill.setVisible(false);
+        this.BackgroundEdgeFill.setOrigin(0.5, 0.5);
 
         this.BottomObstacle = this.matter.add.image(scene_JGRZhYTj.WORLD_WIDTH / 2, scene_JGRZhYTj.FLOOR_Y, 'default', null, {
             "isStatic": true,
@@ -645,7 +666,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
             "restitution": 0,
             "frictionStatic": 0.5,
             "density": 0.001,
-            "isSensor": false,
+            "isSensor": true,
             "slop": 0.05,
             "ignoreGravity": false,
             "frictionAir": 0.01,
@@ -655,7 +676,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
             "shape": {
                 "type": "rectangle",
                 "width": 100,
-                "height": 900,
+                "height": 730,
                 "radius": 16,
                 "sides": 5,
                 "slope": 0.5,
@@ -670,21 +691,104 @@ class scene_JGRZhYTj extends Phaser.Scene {
         this.FootballGoal.setName('FootballGoal');
         this.FootballGoal.setAlpha(1);
         this.FootballGoal.setDepth(0);
-        this.FootballGoal.setScale(0.3, 0.3);
+        this.FootballGoal.setScale(0.2, 0.2);
         this.FootballGoal.setAngle(0);
         this.FootballGoal.setVisible(true);
         this.FootballGoal.setBlendMode(0);
         this.FootballGoal.setScrollFactor(1, 1);
         this.FootballGoal.setInteractive();
-        this.FootballGoal.setOrigin(0.37, 0.5);
+        this.FootballGoal.setOrigin(0.45, 0.5);
         this.FootballGoal.setFlipX(true);
         this.FootballGoal.setFlipY(false);
+
+        this.FootballGoalObstacle = this.matter.add.image(1990, 884, 'default', null, {
+            "isStatic": true,
+            "friction": 0.1,
+            "restitution": 0,
+            "frictionStatic": 0.5,
+            "density": 0.001,
+            "isSensor": false,
+            "slop": 0.05,
+            "ignoreGravity": false,
+            "frictionAir": 0.01,
+            "damping": 0,
+            "angularDamping": 0,
+            "sleepThreshold": 60,
+            "shape": {
+                "type": "rectangle",
+                "width": 32,
+                "height": 32,
+                "radius": 16,
+                "sides": 5,
+                "slope": 0.5,
+                "verts": []
+            },
+            "collisionFilter": {
+                "group": 0,
+                "category": 1,
+                "mask": 4294967295
+            }
+        });
+        this.FootballGoalObstacle.setName('FootballGoalObstacle');
+        this.FootballGoalObstacle.setAlpha(1);
+        this.FootballGoalObstacle.setDepth(0);
+        this.FootballGoalObstacle.setScale(0.5, 6);
+        this.FootballGoalObstacle.setAngle(-23);
+        this.FootballGoalObstacle.setVisible(false);
+        this.FootballGoalObstacle.setBlendMode(0);
+        this.FootballGoalObstacle.setScrollFactor(1, 1);
+        this.FootballGoalObstacle.setInteractive();
+        this.FootballGoalObstacle.setOrigin(0.5, 0.5);
+        this.FootballGoalObstacle.setFlipX(false);
+        this.FootballGoalObstacle.setFlipY(false);
+
+        this.FootballGoalObstacle_1 = this.matter.add.image(1940, 800, 'default', null, {
+            "isStatic": true,
+            "friction": 0.1,
+            "restitution": 0,
+            "frictionStatic": 0.5,
+            "density": 0.001,
+            "isSensor": false,
+            "slop": 0.05,
+            "ignoreGravity": false,
+            "frictionAir": 0.01,
+            "damping": 0,
+            "angularDamping": 0,
+            "sleepThreshold": 60,
+            "shape": {
+                "type": "rectangle",
+                "width": 32,
+                "height": 32,
+                "radius": 16,
+                "sides": 5,
+                "slope": 0.5,
+                "verts": []
+            },
+            "collisionFilter": {
+                "group": 0,
+                "category": 1,
+                "mask": 4294967295
+            }
+        });
+        this.FootballGoalObstacle_1.setName('FootballGoalObstacle_1');
+        this.FootballGoalObstacle_1.setAlpha(1);
+        this.FootballGoalObstacle_1.setDepth(0);
+        this.FootballGoalObstacle_1.setScale(0.5, 2.5);
+        this.FootballGoalObstacle_1.setAngle(-49);
+        this.FootballGoalObstacle_1.setVisible(false);
+        this.FootballGoalObstacle_1.setBlendMode(0);
+        this.FootballGoalObstacle_1.setScrollFactor(1, 1);
+        this.FootballGoalObstacle_1.setInteractive();
+        this.FootballGoalObstacle_1.setOrigin(0.5, 0.5);
+        this.FootballGoalObstacle_1.setFlipX(false);
+        this.FootballGoalObstacle_1.setFlipY(false);
+        this.matter.world.setBounds();
 
         this.matter.world.setBounds(0, 0, scene_JGRZhYTj.WORLD_WIDTH, scene_JGRZhYTj.WORLD_HEIGHT);
 
         this.setupCamera();
 
-        // графика для отображения прицела (точек направления)
+        // графика для отображения прицела
         this.aimGraphics = this.add.graphics();
         this.aimGraphics.setDepth(10);
 
@@ -692,6 +796,9 @@ class scene_JGRZhYTj extends Phaser.Scene {
             if (this.isMoving) return;
 
             this.startPoint = { x: pointer.worldX, y: pointer.worldY };
+            this.isAiming = true;
+
+            //this.smoothZoom(scene_JGRZhYTj.CAMERA_AIM_ZOOM)
         });
         this.input.on("pointermove", (pointer) => {
             if (!this.startPoint || this.isMoving) return;
@@ -723,7 +830,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
             );
 
             // Динамическая скорость (чем больше перетаскивание, тем сильнее удар)
-            const maxDrag = 300; // Максимальное расстояние для полной силы
+            const maxDrag = 150; // Максимальное расстояние для полной силы
             const power = Phaser.Math.Clamp(dragDistance / maxDrag, 0, 1); // 0-1
             const finalSpeed = this.speed * power;
 
@@ -737,24 +844,99 @@ class scene_JGRZhYTj extends Phaser.Scene {
             this.aimGraphics.clear();
             this.startPoint = null;
 
+            this.isAiming = false;
+
             this.ballIsPushed = true;
+
+            //this.smoothZoom(1);
         });
 
-        this.setupBusMovement(busCenterX, 1534, 0.5);
+        this._resizeHandler = (gameSize) => {
+            this.cameras.main.setSize(gameSize.width, gameSize.height);
+
+            // Если есть активный твин, останавливаем
+            if (this.zoomTween) {
+                this.zoomTween.stop();
+                this.zoomTween = null;
+            }
+
+            // Если мы в режиме прицеливания, отменяем его
+            if (this.isAiming) {
+                this.isAiming = false;
+                this.startPoint = null;
+                this.aimGraphics.clear();
+            }
+
+            // Пересчитываем базовый зум
+            this.updateCameraZoom();
+
+            // Применяем базовый зум мгновенно
+            const baseZoom = this.baseZoom;
+            this.cameras.main.setZoom(baseZoom);
+
+            // Обновляем границы
+            const viewportWidth = gameSize.width;
+            const viewportHeight = gameSize.height;
+            const visibleWorldHeight = viewportHeight / baseZoom;
+            const scrollY = scene_JGRZhYTj.WORLD_HEIGHT - visibleWorldHeight;
+            this.cameras.main.setBounds(0, scrollY, scene_JGRZhYTj.WORLD_WIDTH, visibleWorldHeight);
+
+            // Обновляем запасной фон
+            if (this.BackgroundEdgeFill) {
+                this.BackgroundEdgeFill.setVisible(true);
+                this.BackgroundEdgeFill.setTexture('Background');
+                this.BackgroundEdgeFill.setDisplaySize(scene_JGRZhYTj.WORLD_WIDTH, visibleWorldHeight);
+                this.BackgroundEdgeFill.setPosition(
+                    scene_JGRZhYTj.WORLD_WIDTH / 2,
+                    scrollY + visibleWorldHeight / 2
+                );
+            }
+        };
+
+        this._collisionHandler = (event) => {
+            event.pairs.forEach(pair => {
+                const { bodyA, bodyB } = pair;
+                const bodies = [bodyA, bodyB];
+
+                const hitByBall = bodies.includes(this.Ball.body);
+                const isEnemy = false;
+
+                const relVelX = bodyA.velocity.x - bodyB.velocity.x;
+                const relVelY = bodyA.velocity.y - bodyB.velocity.y;
+                const impactSpeed = Math.sqrt(relVelX * relVelX + relVelY * relVelY);
+
+                if (hitByBall) {
+                    if (this.isMoving && this.ballIsPushed && impactSpeed > scene_JGRZhYTj.CAMERA_SHAKE_MIN_IMPACT_SPEED && !this.isCameraShaked) {
+                        this.startSlowMotionWithZoom();
+                        this.cameras.main.shake(scene_JGRZhYTj.CAMERA_SHAKE_DURATION, scene_JGRZhYTj.CAMERA_SHAKE_INTESITY);
+                        this.isCameraShaked = true;
+                    }
+
+                    if (bodyA.gameObject == this.Ball && bodyB.gameObject == this.FootballGoal && this.Ball.body.position.x <= this.FootballGoal.body.position.x) { //GOOOOOOL
+                        //this.spawnHitParticles(this.screenWidth / 2, this.screenHeight / 2, 0x48ff54, 1000);
+                        this.cameras.main.shake(scene_JGRZhYTj.CAMERA_SHAKE_DURATION, scene_JGRZhYTj.CAMERA_SHAKE_INTESITY);
+                        this.startSlowMotionWithZoom();
+                    }
+                }
+
+                if (impactSpeed > 0.3) {
+                    this.handleHit(bodyA, bodyB, impactSpeed);
+                    this.handleHit(bodyB, bodyA, impactSpeed);
+                }
+            });
+        };
+
+        this.scale.on('resize', this._resizeHandler);
+        this.events.on('shutdown', this.onSceneShutdown, this);
+
         this.attachRidersToBus();
         this.setupRiderHealth();
         this.setupCollisionDetach();
         this.setupParticles();
 
+        this.setUpBus(1400, this.busInitialY); // busY
 
-        this.setupRestartButton();
-
-        // При ресайзе окна/повороте экрана пересчитываем зум камеры
-        // и позицию кнопки рестарта - сам игровой мир и физика не трогаются.
-        this.scale.on('resize', () => {
-            this.updateCameraZoom();
-            this.repositionRestartButton();
-        });
+        this.setSlowMotion(1);
 
         // [end-create]
     }
@@ -770,95 +952,53 @@ class scene_JGRZhYTj extends Phaser.Scene {
 
         if (this.isMoving === false && this.ballIsPushed === true) {
             this.Ball.setPosition(this.ballStartPos.x, this.ballStartPos.y);
+            
             this.ballIsPushed = false;
+            this.isCameraShaked = false;
         }
 
-        this.moveBus();
-        this.syncBusVisuals();
         this.drawAllHealthBars();
+
+        if (this.isAiming && this.zoomTween === null) {
+            // Если мы в режиме прицеливания и нет активного твина то приближаем
+            this.smoothZoom(scene_JGRZhYTj.CAMERA_AIM_ZOOM);
+        } else if (!this.isAiming && !this.isSlowMotion && this.zoomTween === null && this.cameraInitialized) {
+            // Если мы НЕ в режиме прицеливания и нет активного твина то возвращаем зум
+            // Проверяем, что текущий зум отличается от базового
+            const currentZoom = this.cameras.main.zoom;
+            const baseZoom = this.baseZoom || 1;
+            if (Math.abs(currentZoom - baseZoom) > 0.01) {
+                this.smoothZoom(1);
+            }
+        }
+
+        const physicsScale = this.slowMoScale ?? 1; // 1 = обычная скорость
+        this.matter.world.step(delta * physicsScale);
 
         // [end-update]
     }
 
-    syncBusVisuals() {
-        const dx = this.Bus.x - this.busInitialX;
-        const dy = this.Bus.y - this.busInitialY;
-
-        this.busBottomSprites.forEach((sprite, i) => {
-            sprite.x = this.busBottomOffsets[i].x + dx;
-            sprite.y = this.busBottomOffsets[i].y + dy;
-        });
-
-        this.wheelSprites.forEach((sprite, i) => {
-            sprite.x = this.wheelOffsets[i].x + dx;
-            sprite.y = this.wheelOffsets[i].y + dy;
-        });
-    }
-    moveBus() {
-        const Body = Phaser.Physics.Matter.Matter.Body;
-
-        let newX = this.Bus.x + this.busMoveSpeed * this.busMoveDirection;
-
-        // разворот у границ
-        if (newX >= this.busMoveX2) {
-            newX = this.busMoveX2;
-            this.busMoveDirection = -1;
-            this.reverseWheels();
-        } else if (newX <= this.busMoveX1) {
-            newX = this.busMoveX1;
-            this.busMoveDirection = 1;
-            this.reverseWheels();
+    onSceneShutdown() {
+        this.scale.off('resize', this._resizeHandler);
+        if (this.matter && this.matter.world) {
+            this.matter.world.off('collisionstart', this._collisionHandler);
         }
 
-        Body.setPosition(this.Bus.body, { x: newX, y: this.Bus.y });
-    }
-    setupBusMovement(x1, x2, speed) {
-        this.busMoveX1 = x1;
-        this.busMoveX2 = x2;
-        this.busMoveSpeed = speed;
-        this.busMoveDirection = 1; // 1 = едем к x2, -1 = едем к x1
+        if (this._slowMoTimeout) {
+            clearTimeout(this._slowMoTimeout);
+            this._slowMoTimeout = null;
+        }
+        if (this.zoomTween) {
+            this.zoomTween.stop();
+            this.zoomTween = null;
+        }
 
-        this.wheelTweens = [];
-
-        this.wheelSprites.forEach((wheel) => {
-            const tween = this.tweens.add({
-                targets: wheel,
-                angle: 360,              // вращаем на 360 градусов
-                duration: 7000,          
-                repeat: -1,              // бесконечно
-                ease: 'Linear'           // равномерное вращение
-            });
-            this.wheelTweens.push(tween);
-        });
-    }
-    reverseWheels() {
-        this.wheelTweens.forEach((tween, index) => {
-            // Останавливаем текущий твин
-            tween.stop();
-
-            // Создаём новый с противоположным направлением
-            const wheel = this.wheelSprites[index];
-            const currentAngle = wheel.angle;
-
-            // Новый твин - вращение в обратную сторону
-            const newTween = this.tweens.add({
-                targets: wheel,
-                angle: currentAngle - 360, // вращаем в обратную сторону
-                duration: 7000,
-                repeat: -1,
-                ease: 'Linear'
-            });
-
-            // Заменяем старый твин новым
-            this.wheelTweens[index] = newTween;
-        });
+        this.time.timeScale = 1;
+        this.tweens.timeScale = 1;
+        this.slowMoScale = 1;
     }
 
     attachRidersToBus() {
-        const busCenterX = this.busInitialX; // 1248
-        const busCenterY = this.busInitialY; // 890
-
-        // список объектов, которые едут на автобусе + их стартовые позиции
         const riders = [
             { obj: this.Obstacle_1, x: 961, y: 745 },
             { obj: this.Obstacle_2, x: 961, y: 816 },
@@ -872,62 +1012,53 @@ class scene_JGRZhYTj extends Phaser.Scene {
             { obj: this.Enemy_3, x: 1532, y: 719 },
         ];
 
-        this.riderConstraintMap = new Map();   // body -> constraint
+        this.riderDesignOffsets = new Map();   // body -> текущая "домашняя" позиция на автобусе
         this.riderBodyToObjectMap = new Map(); // body -> gameObject
 
         riders.forEach(({ obj, x, y }) => {
-            const constraint = this.matter.add.constraint(this.Bus.body, obj.body, 0, 0.04, {
-                pointA: { x: x - busCenterX, y: y - busCenterY },
-                pointB: { x: 0, y: 0 },
-                damping: 0.15
-            });
-            this.riderConstraintMap.set(obj.body, constraint);
+            this.riderDesignOffsets.set(obj.body, { x, y });
             this.riderBodyToObjectMap.set(obj.body, obj);
         });
     }
 
-    setupCollisionDetach() {
-        this.matter.world.on('collisionstart', (event) => {
-            event.pairs.forEach(pair => {
-                const { bodyA, bodyB } = pair;
-                const bodies = [bodyA, bodyB];
+    setUpBus(x, y) {
+        const Body = Phaser.Physics.Matter.Matter.Body;
 
-                const hitByBall = bodies.includes(this.Ball.body);
+        const dx = x - this.busInitialX;
+        const dy = y - this.busInitialY;
 
-                if (hitByBall) {
-                    const otherBody = bodies.find(b => b !== this.Ball.body);
-                    this.detachAndLaunch(otherBody, this.Ball.body);
+        // Физическое тело автобуса (каркас, статика)
+        Body.setPosition(this.Bus.body, { x, y });
 
-                    if (bodyA.gameObject == this.Ball && bodyB.gameObject == this.FootballGoal) {
-                        this.spawnHitParticles(this.screenWidth / 2, this.screenHeight / 2, 0x48ff54, 1000);
-                        this.Ball.setVelocity(0, 0);
-                        this.Ball.setAngularVelocity(0, 0);
-                        this.Ball.setPosition(this.ballStartPos.x, this.ballStartPos.y);
-                        this.ballIsPushed = false;
-                    }
-
-                    // return
-                }
-
-                // столкновение между двумя обычными riders (не мяч)
-                const relVelX = bodyA.velocity.x - bodyB.velocity.x;
-                const relVelY = bodyA.velocity.y - bodyB.velocity.y;
-                const impactSpeed = Math.sqrt(relVelX * relVelX + relVelY * relVelY);
-
-                if (impactSpeed > 0.3) {
-                    // оба тела могли уже двигаться свободно (одно отцеплено, другое ещё нет)
-                    if (this.riderConstraintMap.has(bodyA)) {
-                        this.detachAndLaunch(bodyA, bodyB);
-                        this.handleHit(bodyA);
-                    }
-                    if (this.riderConstraintMap.has(bodyB)) {
-                        this.detachAndLaunch(bodyB, bodyA);
-                    }
-                    this.handleHit(bodyA, bodyB, impactSpeed);
-                    this.handleHit(bodyB, bodyA, impactSpeed);
-                }
-            });
+        // Визуальные секции
+        this.busBottomOffsets.forEach((offset, i) => {
+            offset.x += dx;
+            offset.y += dy;
+            this.busBottomSprites[i].setPosition(offset.x, offset.y);
         });
+
+        // Колёса (только визуал, без физики)
+        this.wheelOffsets.forEach((offset, i) => {
+            offset.x += dx;
+            offset.y += dy;
+            this.wheelSprites[i].setPosition(offset.x, offset.y);
+        });
+
+        // Райдеры/враги = обычные физические тела, переставляем их
+        // "домашние" позиции и сами тела на новое место одним разом.
+        this.riderDesignOffsets.forEach((offset, body) => {
+            offset.x += dx;
+            offset.y += dy;
+
+            Body.setPosition(body, { x: offset.x, y: offset.y });
+        });
+
+        this.busInitialX = x;
+        this.busInitialY = y;
+    }
+
+    setupCollisionDetach() {
+        this.matter.world.on('collisionstart', this._collisionHandler);
     }
 
     handleHit(body, sourceBody, impactSpeed) {
@@ -944,36 +1075,28 @@ class scene_JGRZhYTj extends Phaser.Scene {
             const gameObj = this.riderBodyToObjectMap.get(body);
             this.spawnHitParticles(body.position.x, body.position.y, 0xff0000, 100);
 
-            const constraint = this.riderConstraintMap.get(body);
-            if (constraint) {
-                this.matter.world.removeConstraint(constraint);
-                this.riderConstraintMap.delete(body);
-            }
+            this.cameras.main.shake(scene_JGRZhYTj.CAMERA_SHAKE_DURATION, scene_JGRZhYTj.CAMERA_SHAKE_INTESITY);
 
             healthData.bar.destroy();
             this.riderHealthMap.delete(body);
             this.removeRider(gameObj, body);
         }
-
-
     }
     removeRider(gameObj, body) {
         this.matter.world.remove(body);
         gameObj.destroy();
 
         this.riderBodyToObjectMap.delete(body);
-        this.riderConstraintMap.delete(body);
+        this.riderDesignOffsets.delete(body);
         this.riderHealthMap.delete(body);
     }
     setupParticles() {
-        // генерируем маленькую белую точку как текстуру для частиц
         const particleGfx = this.make.graphics({ x: 0, y: 0, add: false });
         particleGfx.fillStyle(0xffffff, 1);
         particleGfx.fillCircle(4, 4, 4);
         particleGfx.generateTexture('particle_dot', 8, 8);
         particleGfx.destroy();
 
-        // emitter для эффекта попадания
         this.hitEmitter = this.add.particles(0, 0, 'particle_dot', {
             speed: { min: 100, max: 300 },
             angle: { min: 0, max: 360 },
@@ -990,37 +1113,13 @@ class scene_JGRZhYTj extends Phaser.Scene {
         this.hitEmitter.explode(count, x, y);
     }
 
-    detachAndLaunch(body, sourceBody) {
-        const constraint = this.riderConstraintMap.get(body);
-        if (!constraint) return; // уже отцеплен
-
-        const gameObj = this.riderBodyToObjectMap.get(body);
-        if (!gameObj) return;
-
-        this.matter.world.removeConstraint(constraint);
-        this.riderConstraintMap.delete(body);
-        gameObj.setIgnoreGravity(false);
-
-        const Body = Phaser.Physics.Matter.Matter.Body;
-
-        const dirX = body.position.x - sourceBody.position.x;
-        const horizontalKick = Math.sign(dirX) * 2; // толчок в сторону от источника удара
-        const upwardKick = -3; // отрицательный Y = вверх в Phaser-координатах
-
-        Body.setVelocity(body, {
-            x: horizontalKick,
-            y: upwardKick
-        });
-
-    }
-
     // рисует пунктирный прицел из точек от мяча в направлении будущего удара
     drawAimDots(angle, dragDistance) {
         this.aimGraphics.clear();
 
         const dotCount = 20;
         const spacing = 20;
-        const maxDrag = 300;
+        const maxDrag = 100;
         const power = Phaser.Math.Clamp(dragDistance / maxDrag, 0, 1);
 
         // Центр мяча
@@ -1099,85 +1198,156 @@ class scene_JGRZhYTj extends Phaser.Scene {
     // заполнена без полос и без обрезки, а по ширине камера скроллит вслед за мячом.
     setupCamera() {
         const camera = this.cameras.main;
-        camera.setBounds(0, 0, scene_JGRZhYTj.WORLD_WIDTH, scene_JGRZhYTj.WORLD_HEIGHT);
+
+        camera.setSize(this.scale.width, this.scale.height);
+
+        camera.setBounds(
+            0,
+            0,
+            scene_JGRZhYTj.WORLD_WIDTH,
+            scene_JGRZhYTj.WORLD_HEIGHT
+        );
 
         this.updateCameraZoom();
 
-        // lerpY = 0 — камера не двигается по вертикали, только по X вслед за мячом.
-        camera.startFollow(this.Ball, true, scene_JGRZhYTj.CAMERA_FOLLOW_LERP_X, 0);
+        // Следим за мячом ТОЛЬКО по X.
+        camera.startFollow(
+            this.Ball,
+            true,
+            scene_JGRZhYTj.CAMERA_FOLLOW_LERP_X,
+            0
+        );
     }
 
-    setupRestartButton() {
-        this.restartBtnBg = this.add.graphics();
-        this.restartBtnBg.setDepth(100);
-        this.restartBtnBg.setScrollFactor(0);
+    smoothZoom(targetZoom, duration = scene_JGRZhYTj.CAMERA_ZOOM_DURATION) {
+        // Если камера еще не инициализирована
+        if (!this.cameras.main.zoom || this.cameras.main.zoom === 0) {
+            return;
+        }
 
-        this.restartBtnText = this.add.text(0, 0, 'R', {
-            fontFamily: 'Arial, sans-serif',
-            fontStyle: 'bold',
-            color: '#ffffff'
-        }).setOrigin(0.5);
-        this.restartBtnText.setDepth(101);
-        this.restartBtnText.setScrollFactor(0);
+        // Если уже есть активный твин
+        if (this.zoomTween) {
+            this.zoomTween.stop();
+            this.zoomTween = null;
+        }
 
-        this.restartHitZone = this.add.zone(0, 0, 1, 1)
-            .setOrigin(0, 0)
-            .setInteractive({ useHandCursor: true })
-            .setScrollFactor(0);
-        this.restartHitZone.setDepth(102);
+        const camera = this.cameras.main;
+        const startZoom = camera.zoom;
+        const baseZoom = this.baseZoom || 1;
+        const targetZoomAbsolute = targetZoom * baseZoom;
 
-        this.restartHitZone.on('pointerdown', () => {
-            this.scene.restart();
+        // Если целевой зум совпадает с текущим
+        if (Math.abs(startZoom - targetZoomAbsolute) < 0.001) {
+            return;
+        }
+
+        // Создаем твин для плавного изменения зума
+        this.zoomTween = this.tweens.add({
+            targets: { value: startZoom },
+            value: targetZoomAbsolute,
+            duration: duration,
+            ease: 'Cubic.easeInOut',
+            onUpdate: (tween) => {
+                const currentZoom = tween.targets[0].value;
+                camera.setZoom(currentZoom);
+
+                // Обновляем границы камеры
+                const viewportWidth = this.scale.width;
+                const viewportHeight = this.scale.height;
+                const visibleWorldHeight = viewportHeight / currentZoom;
+                const scrollY = scene_JGRZhYTj.WORLD_HEIGHT - visibleWorldHeight;
+
+                camera.setBounds(0, scrollY, scene_JGRZhYTj.WORLD_WIDTH, visibleWorldHeight);
+
+                // Обновляем запасной фон
+                if (this.BackgroundEdgeFill) {
+                    this.BackgroundEdgeFill.setVisible(true);
+                    this.BackgroundEdgeFill.setTexture('Background');
+                    this.BackgroundEdgeFill.setDisplaySize(scene_JGRZhYTj.WORLD_WIDTH, visibleWorldHeight);
+                    this.BackgroundEdgeFill.setPosition(
+                        scene_JGRZhYTj.WORLD_WIDTH / 2,
+                        scrollY + visibleWorldHeight / 2
+                    );
+                }
+            },
+            onComplete: () => {
+                this.zoomTween = null;
+            }
         });
-        this.restartHitZone.on('pointerover', () => {
-            this.drawRestartButton(scene_JGRZhYTj.RESTART_BTN_HOVER_ALPHA);
-        });
-        this.restartHitZone.on('pointerout', () => {
-            this.drawRestartButton(scene_JGRZhYTj.RESTART_BTN_IDLE_ALPHA);
-        });
-
-        this.repositionRestartButton();
     }
+    setSlowMotion(scale, duration = 150) {
+        if (this.slowMoTween) {
+            this.slowMoTween.stop();
+            this.slowMoTween = null;
+        }
 
-    repositionRestartButton() {
-        if (!this.restartBtnBg) return;
-
-        const zoom = this.cameras.main.zoom;
-        const size = scene_JGRZhYTj.RESTART_BTN_SIZE / zoom;
-        const padding = scene_JGRZhYTj.RESTART_BTN_PADDING / zoom;
-
-        this.restartBtnX = padding;
-        this.restartBtnY = padding;
-        this.restartBtnSize = size;
-
-        this.restartHitZone.setPosition(this.restartBtnX, this.restartBtnY);
-        this.restartHitZone.setSize(size, size);
-
-        this.drawRestartButton(scene_JGRZhYTj.RESTART_BTN_IDLE_ALPHA);
-    }
-
-    drawRestartButton(alpha) {
-        const zoom = this.cameras.main.zoom;
-        const x = this.restartBtnX;
-        const y = this.restartBtnY;
-        const size = this.restartBtnSize;
-
-        this.restartBtnBg.clear();
-        this.restartBtnBg.fillStyle(0x000000, alpha);
-        this.restartBtnBg.fillRoundedRect(x, y, size, size, scene_JGRZhYTj.RESTART_BTN_RADIUS / zoom);
-
-        this.restartBtnText.setFontSize(scene_JGRZhYTj.RESTART_FONT_SIZE / zoom);
-        this.restartBtnText.setPosition(x + size / 2, y + size / 2);
+        this.slowMoTween = this.tweens.add({
+            targets: this,
+            slowMoScale: scale,
+            duration: duration,
+            ease: 'Sine.easeInOut',
+            onComplete: () => {
+                this.slowMoTween = null;
+            }
+        });
     }
 
     updateCameraZoom() {
         const camera = this.cameras.main;
-        const rawZoom = this.scale.height / scene_JGRZhYTj.WORLD_HEIGHT;
-        camera.setZoom(Phaser.Math.Clamp(
-            rawZoom,
-            scene_JGRZhYTj.CAMERA_MIN_ZOOM,
-            scene_JGRZhYTj.CAMERA_MAX_ZOOM
-        ));
+
+        const worldWidth = scene_JGRZhYTj.WORLD_WIDTH;
+        const worldHeight = scene_JGRZhYTj.WORLD_HEIGHT;
+
+        const viewportWidth = this.scale.width;
+        const viewportHeight = this.scale.height;
+
+        // Базовый зум: вся высота мира видна.
+        let zoom = viewportHeight / worldHeight;
+        const visibleWorldWidth = viewportWidth / zoom;
+
+        if (visibleWorldWidth > worldWidth) {
+            zoom = viewportWidth / worldWidth;
+        }
+
+        this.baseZoom = zoom;
+
+        // Устанавливаем начальный зум ТОЛЬКО если камера еще не инициализирована
+        if (!this.cameraInitialized) {
+            camera.setZoom(zoom);
+            this.cameraInitialized = true;
+
+            // обновляем границы для начального состояния
+            const viewportHeightNow = this.scale.height;
+            const visibleWorldHeight = viewportHeightNow / zoom;
+            const scrollY = scene_JGRZhYTj.WORLD_HEIGHT - visibleWorldHeight;
+            camera.setBounds(0, scrollY, scene_JGRZhYTj.WORLD_WIDTH, visibleWorldHeight);
+
+            // Обновляем запасной фон
+            if (this.BackgroundEdgeFill) {
+                this.BackgroundEdgeFill.setVisible(true);
+                this.BackgroundEdgeFill.setTexture('Background');
+                this.BackgroundEdgeFill.setDisplaySize(scene_JGRZhYTj.WORLD_WIDTH, visibleWorldHeight);
+                this.BackgroundEdgeFill.setPosition(
+                    scene_JGRZhYTj.WORLD_WIDTH / 2,
+                    scrollY + visibleWorldHeight / 2
+                );
+            }
+        }
+    }
+
+    startSlowMotionWithZoom() {
+        if(this.isSlowMotion == true) return;
+
+        this.smoothZoom(scene_JGRZhYTj.CAMERA_SLOW_MOTION_ZOOM, scene_JGRZhYTj.CAMERA_SLOW_MOTION_ZOOM_DURATION);
+        this.setSlowMotion(scene_JGRZhYTj.SLOW_MOTION_SCALE, scene_JGRZhYTj.SLOW_MOTION_TRANSITION_IN);
+        this.isSlowMotion = true;
+
+        this._slowMoTimeout = setTimeout(() => {
+            this.isSlowMotion = false;
+            this.setSlowMotion(1, scene_JGRZhYTj.SLOW_MOTION_TRANSITION_OUT);
+            this.smoothZoom(1, scene_JGRZhYTj.CAMERA_SLOW_MOTION_ZOOM_DURATION);
+            this._slowMoTimeout = null;
+        }, scene_JGRZhYTj.SLOW_MOTION_DURATION);
     }
 }
 // [end-scene]
@@ -1185,7 +1355,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
 const config = {
     "type": 0,
     "parent": "game-container",
-    "backgroundColor": "#ffa348",
+    "backgroundColor": "#000000",
     "transparent": false,
     "antialias": true,
     "disableContextMenu": true,
@@ -1215,7 +1385,8 @@ const config = {
                 "y": 1
             },
             "debug": false,
-            "enableSleeping": false
+            "enableSleeping": false,
+            "autoUpdate": false,
         }
     },
     "scene": [scene_JGRZhYTj]
