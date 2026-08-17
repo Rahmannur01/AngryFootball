@@ -115,6 +115,7 @@ restartButton.addEventListener('pointerdown', (event) => {
     const scene = game.scene.getScene('scene_JGRZhYTj');
 
     if (scene && scene.scene.isActive()) {
+        scene.cancelAiming?.();
         scene.scene.restart();
     }
 });
@@ -124,6 +125,9 @@ fullscreenButton.addEventListener('pointerdown', async (event) => {
     event.stopPropagation();
 
     fullscreenButton.blur();
+
+    const scene = game.scene.getScene('scene_JGRZhYTj');
+    scene?.cancelAiming?.();
 
     const el = document.documentElement;
 

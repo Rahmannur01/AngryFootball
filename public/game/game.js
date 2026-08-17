@@ -35,6 +35,9 @@ class scene_JGRZhYTj extends Phaser.Scene {
     static SLOW_MOTION_TRANSITION_IN = 200;
     static SLOW_MOTION_TRANSITION_OUT = 200;
 
+    static STILL_THRESHOLD = 0.05;
+    static STILL_DURATION_MS = 300;
+
     constructor() {
         super({ key: 'scene_JGRZhYTj' });
         this.speed = 35;
@@ -51,6 +54,10 @@ class scene_JGRZhYTj extends Phaser.Scene {
         this.isSlowMotion = false;
         this.slowMoScale = 1;
         this.slowMoTween = null;
+
+        this.ballReady = false;
+        this._ballStillTimer = 0;
+        this.readyIndicator = null;
     }
 
     init() {
@@ -792,8 +799,11 @@ class scene_JGRZhYTj extends Phaser.Scene {
         this.aimGraphics = this.add.graphics();
         this.aimGraphics.setDepth(10);
 
+        this.readyIndicator = this.add.graphics();
+        this.readyIndicator.setDepth(9);
+
         this.input.on("pointerdown", (pointer) => {
-            if (this.isMoving) return;
+            if (this.isMoving || !this.ballReady) return;
 
             this.startPoint = { x: pointer.worldX, y: pointer.worldY };
             this.isAiming = true;
@@ -952,9 +962,33 @@ class scene_JGRZhYTj extends Phaser.Scene {
 
         if (this.isMoving === false && this.ballIsPushed === true) {
             this.Ball.setPosition(this.ballStartPos.x, this.ballStartPos.y);
-            
+
             this.ballIsPushed = false;
             this.isCameraShaked = false;
+
+            this.ballReady = false;
+            this._ballStillTimer = 0;
+        }
+        
+        if (speed <= scene_JGRZhYTj.STILL_THRESHOLD) {
+            this._ballStillTimer += delta;
+        } else {
+            this._ballStillTimer = 0;
+            this.ballReady = false;
+        }
+
+        if (this._ballStillTimer >= scene_JGRZhYTj.STILL_DURATION_MS) {
+            this.ballReady = true;
+        }
+
+        // визуальный индикатор готовности
+        this.readyIndicator.clear();
+        if (!this.ballReady && !this.isMoving) {
+            this.Ball.setAlpha(0.5);
+            this.readyIndicator.lineStyle(3, 0xffffff, 0.6);
+            this.readyIndicator.strokeCircle(this.Ball.x, this.Ball.y, 40 + Math.sin(time / 150) * 5);
+        } else {
+            this.Ball.setAlpha(1);
         }
 
         this.drawAllHealthBars();
@@ -988,6 +1022,11 @@ class scene_JGRZhYTj extends Phaser.Scene {
             clearTimeout(this._slowMoTimeout);
             this._slowMoTimeout = null;
         }
+        if (this.slowMoTween) {
+            this.slowMoTween.stop();
+            this.slowMoTween = null;
+        }
+
         if (this.zoomTween) {
             this.zoomTween.stop();
             this.zoomTween = null;
@@ -996,6 +1035,26 @@ class scene_JGRZhYTj extends Phaser.Scene {
         this.time.timeScale = 1;
         this.tweens.timeScale = 1;
         this.slowMoScale = 1;
+        this.isSlowMotion = false;
+        this.isAiming = false;
+        this.startPoint = null;
+        this.cameraInitialized = false;
+        this.ballReady = false;
+        this._ballStillTimer = 0;
+        this.readyIndicator = null;
+    }
+    cancelAiming() {
+        if (!this.isAiming) return;
+
+        this.isAiming = false;
+        this.startPoint = null;
+        this.aimGraphics.clear();
+
+        if (this.zoomTween) {
+            this.zoomTween.stop();
+            this.zoomTween = null;
+        }
+        this.smoothZoom(1);
     }
 
     attachRidersToBus() {
@@ -1336,7 +1395,7 @@ class scene_JGRZhYTj extends Phaser.Scene {
     }
 
     startSlowMotionWithZoom() {
-        if(this.isSlowMotion == true) return;
+        if (this.isSlowMotion == true) return;
 
         this.smoothZoom(scene_JGRZhYTj.CAMERA_SLOW_MOTION_ZOOM, scene_JGRZhYTj.CAMERA_SLOW_MOTION_ZOOM_DURATION);
         this.setSlowMotion(scene_JGRZhYTj.SLOW_MOTION_SCALE, scene_JGRZhYTj.SLOW_MOTION_TRANSITION_IN);
