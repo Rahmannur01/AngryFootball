@@ -1,0 +1,2641 @@
+{
+    "Bus_constructor_1": {
+        "preload": [
+            {
+                "key": "Background",
+                "file": "assets/Background_1.png"
+            },
+            {
+                "key": "Karkas",
+                "file": "assets/Karkas_1.png"
+            },
+            {
+                "key": "Obstacle_3",
+                "file": "assets/Obstacle_3.png"
+            },
+            {
+                "key": "Obstacle_2",
+                "file": "assets/Obstacle_2.png"
+            },
+            {
+                "key": "Obstacle_1",
+                "file": "assets/Obsatcle_7.png"
+            },
+            {
+                "key": "Obstacle_4",
+                "file": "assets/Obstacle_2.png"
+            },
+            {
+                "key": "Bochka",
+                "file": "assets/Obstacle_10.png"
+            },
+            {
+                "key": "Add_player_button",
+                "file": "assets/Add_player_button.png"
+            }
+        ],
+        "objects": [
+            {
+                "name": "Background",
+                "type": "image",
+                "x": 1253,
+                "y": 512,
+                "texture": "Background",
+                "setName": "Background",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    1.2,
+                    1.5
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "image_rfNf0PiG",
+                "type": "matterImage",
+                "x": 1255,
+                "y": 990,
+                "texture": "default",
+                "physics": {
+                    "isStatic": true,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 32,
+                        "height": 32,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "image_rfNf0PiG",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    80,
+                    4.5
+                ],
+                "angle": 0,
+                "visible": false,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Karkas",
+                "type": "matterImage",
+                "x": 1525,
+                "y": 850,
+                "texture": "Karkas",
+                "physics": {
+                    "isStatic": true,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 1420,
+                        "height": 90,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Karkas",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.7,
+                    0.7
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_1",
+                "type": "matterImage",
+                "x": 1313,
+                "y": 746,
+                "texture": "Obstacle_3",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 90,
+                        "height": 211,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_1",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.35,
+                    0.69
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_2",
+                "type": "matterImage",
+                "x": 1047,
+                "y": 745,
+                "texture": "Obstacle_4",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 285,
+                        "height": 75,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_2",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.52,
+                    0.35
+                ],
+                "angle": 90,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_3",
+                "type": "matterImage",
+                "x": 1183,
+                "y": 659,
+                "texture": "Obstacle_3",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 80,
+                        "height": 210,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_3",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.35,
+                    1.4
+                ],
+                "angle": 90,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_4",
+                "type": "matterImage",
+                "x": 1871,
+                "y": 628,
+                "texture": "Obstacle_4",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 280,
+                        "height": 70,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_4",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    1,
+                    0.3
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_5",
+                "type": "matterImage",
+                "x": 1384,
+                "y": 630,
+                "texture": "Obstacle_4",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 280,
+                        "height": 70,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_5",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.6,
+                    0.3
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_6",
+                "type": "matterImage",
+                "x": 1456,
+                "y": 730,
+                "texture": "Obstacle_4",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 273,
+                        "height": 75,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_6",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.64,
+                    0.33
+                ],
+                "angle": 90,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_7",
+                "type": "matterImage",
+                "x": 1741,
+                "y": 730,
+                "texture": "Obstacle_4",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 273,
+                        "height": 75,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_7",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.64,
+                    0.33
+                ],
+                "angle": 90,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_8",
+                "type": "matterImage",
+                "x": 1997,
+                "y": 729,
+                "texture": "Obstacle_3",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 90,
+                        "height": 211,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_8",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.35,
+                    0.85
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_9",
+                "type": "matterImage",
+                "x": 1600,
+                "y": 717,
+                "texture": "Obstacle_4",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 274,
+                        "height": 75,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_9",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.71,
+                    0.33
+                ],
+                "angle": 90,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_10",
+                "type": "matterImage",
+                "x": 1604,
+                "y": 601,
+                "texture": "Obstacle_3",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 80,
+                        "height": 210,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_10",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.35,
+                    1.4
+                ],
+                "angle": 90,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_11",
+                "type": "matterImage",
+                "x": 1603,
+                "y": 538,
+                "texture": "Bochka",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 115,
+                        "height": 190,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_11",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.5,
+                    0.5
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_12",
+                "type": "matterImage",
+                "x": 1268,
+                "y": 598,
+                "texture": "Bochka",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 115,
+                        "height": 190,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_12",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.5,
+                    0.5
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_13",
+                "type": "matterImage",
+                "x": 1783,
+                "y": 568,
+                "texture": "Bochka",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 115,
+                        "height": 190,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_13",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.5,
+                    0.5
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Wheel_1",
+                "type": "matterImage",
+                "x": 1230,
+                "y": 860,
+                "texture": "default",
+                "physics": {
+                    "isStatic": true,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "circle",
+                        "width": 32,
+                        "height": 32,
+                        "radius": 80,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Wheel_1",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    1,
+                    1
+                ],
+                "angle": 0,
+                "visible": false,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Wheel_2",
+                "type": "matterImage",
+                "x": 1815,
+                "y": 860,
+                "texture": "default",
+                "physics": {
+                    "isStatic": true,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "circle",
+                        "width": 32,
+                        "height": 32,
+                        "radius": 80,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Wheel_2",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    1,
+                    1
+                ],
+                "angle": 0,
+                "visible": false,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_1",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1384,
+                "y": 750,
+                "texture": "Add_player_button",
+                "setName": "add_player_1",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_2",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1120,
+                "y": 750,
+                "texture": "Add_player_button",
+                "setName": "add_player_2",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_3",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1530,
+                "y": 750,
+                "texture": "Add_player_button",
+                "setName": "add_player_3",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_4",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1670,
+                "y": 750,
+                "texture": "Add_player_button",
+                "setName": "add_player_4",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_5",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1920,
+                "y": 750,
+                "texture": "Add_player_button",
+                "setName": "add_player_5",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_6",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1155,
+                "y": 578,
+                "texture": "Add_player_button",
+                "setName": "add_player_6",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_7",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1380,
+                "y": 550,
+                "texture": "Add_player_button",
+                "setName": "add_player_7",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_8",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1515,
+                "y": 520,
+                "texture": "Add_player_button",
+                "setName": "add_player_8",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_9",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1694,
+                "y": 520,
+                "texture": "Add_player_button",
+                "setName": "add_player_9",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_10",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1920,
+                "y": 550,
+                "texture": "Add_player_button",
+                "setName": "add_player_10",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            }
+        ]
+    },
+    "Bus_constructor_2": {
+        "preload": [],
+        "objects": [
+            {
+                "name": "Background",
+                "type": "image",
+                "x": 1253,
+                "y": 511,
+                "texture": "Background",
+                "setName": "Background",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    1.2,
+                    1.5
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "image_rfNf0PiG",
+                "type": "matterImage",
+                "x": 1255,
+                "y": 990,
+                "texture": "default",
+                "physics": {
+                    "isStatic": true,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 32,
+                        "height": 32,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "image_rfNf0PiG",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    80,
+                    4.5
+                ],
+                "angle": 0,
+                "visible": false,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Karkas",
+                "type": "matterImage",
+                "x": 1527,
+                "y": 850,
+                "texture": "Karkas",
+                "physics": {
+                    "isStatic": true,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 1420,
+                        "height": 90,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Karkas",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.7,
+                    0.7
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_1",
+                "type": "matterImage",
+                "x": 1313,
+                "y": 746,
+                "texture": "Obstacle_3",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 90,
+                        "height": 211,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_1",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.35,
+                    0.69
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_2",
+                "type": "matterImage",
+                "x": 1060,
+                "y": 699,
+                "texture": "Obstacle_4",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 285,
+                        "height": 75,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_2",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.19,
+                    0.5
+                ],
+                "angle": 90,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_3",
+                "type": "matterImage",
+                "x": 1183,
+                "y": 659,
+                "texture": "Obstacle_3",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 80,
+                        "height": 210,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_3",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.35,
+                    1.4
+                ],
+                "angle": 90,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_4",
+                "type": "matterImage",
+                "x": 1871,
+                "y": 628,
+                "texture": "Obstacle_4",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 280,
+                        "height": 70,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_4",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    1,
+                    0.3
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_5",
+                "type": "matterImage",
+                "x": 1384,
+                "y": 630,
+                "texture": "Obstacle_4",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 280,
+                        "height": 70,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_5",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.6,
+                    0.3
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_6",
+                "type": "matterImage",
+                "x": 1456,
+                "y": 730,
+                "texture": "Obstacle_4",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 273,
+                        "height": 75,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_6",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.64,
+                    0.33
+                ],
+                "angle": 90,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_7",
+                "type": "matterImage",
+                "x": 1741,
+                "y": 730,
+                "texture": "Obstacle_4",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 273,
+                        "height": 75,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_7",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.64,
+                    0.33
+                ],
+                "angle": 90,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_8",
+                "type": "matterImage",
+                "x": 1997,
+                "y": 729,
+                "texture": "Obstacle_3",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 90,
+                        "height": 211,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_8",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.35,
+                    0.85
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_10",
+                "type": "matterImage",
+                "x": 1604,
+                "y": 601,
+                "texture": "Obstacle_3",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 80,
+                        "height": 210,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_10",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.35,
+                    1.4
+                ],
+                "angle": 90,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_11",
+                "type": "matterImage",
+                "x": 1603,
+                "y": 538,
+                "texture": "Bochka",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 115,
+                        "height": 190,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_11",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.5,
+                    0.5
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_12",
+                "type": "matterImage",
+                "x": 1058,
+                "y": 772,
+                "texture": "Bochka",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 115,
+                        "height": 190,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_12",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.5,
+                    0.5
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_13",
+                "type": "matterImage",
+                "x": 1277,
+                "y": 602,
+                "texture": "Obstacle_4",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 280,
+                        "height": 75,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_13",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.3,
+                    0.5
+                ],
+                "angle": 90,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_14",
+                "type": "matterImage",
+                "x": 1774,
+                "y": 576,
+                "texture": "Obstacle_4",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 280,
+                        "height": 75,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_14",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.3,
+                    0.5
+                ],
+                "angle": 90,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Obstacle_1_copy_HfOx",
+                "type": "matterImage",
+                "x": 1601,
+                "y": 718,
+                "texture": "Obstacle_3",
+                "physics": {
+                    "isStatic": false,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "rectangle",
+                        "width": 90,
+                        "height": 210,
+                        "radius": 16,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Obstacle_1_copy_HfOx",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    0.35,
+                    0.93
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Wheel_1",
+                "type": "matterImage",
+                "x": 1230,
+                "y": 860,
+                "texture": "default",
+                "physics": {
+                    "isStatic": true,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "circle",
+                        "width": 32,
+                        "height": 32,
+                        "radius": 80,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Wheel_1",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    1,
+                    1
+                ],
+                "angle": 0,
+                "visible": false,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "Wheel_2",
+                "type": "matterImage",
+                "x": 1815,
+                "y": 860,
+                "texture": "default",
+                "physics": {
+                    "isStatic": true,
+                    "friction": 0.1,
+                    "restitution": 0,
+                    "frictionStatic": 0.5,
+                    "density": 0.001,
+                    "isSensor": false,
+                    "slop": 0.05,
+                    "ignoreGravity": false,
+                    "frictionAir": 0.01,
+                    "damping": 0,
+                    "angularDamping": 0,
+                    "sleepThreshold": 60,
+                    "shape": {
+                        "type": "circle",
+                        "width": 32,
+                        "height": 32,
+                        "radius": 80,
+                        "sides": 5,
+                        "slope": 0.5,
+                        "verts": []
+                    },
+                    "collisionFilter": {
+                        "group": 0,
+                        "category": 1,
+                        "mask": 4294967295
+                    }
+                },
+                "setName": "Wheel_2",
+                "alpha": 1,
+                "depth": 0,
+                "scale": [
+                    1,
+                    1
+                ],
+                "angle": 0,
+                "visible": false,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_1",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1384,
+                "y": 750,
+                "texture": "Add_player_button",
+                "setName": "add_player_1",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_2",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1140,
+                "y": 745,
+                "texture": "Add_player_button",
+                "setName": "add_player_2",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_3",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1530,
+                "y": 745,
+                "texture": "Add_player_button",
+                "setName": "add_player_3",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_4",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1670,
+                "y": 745,
+                "texture": "Add_player_button",
+                "setName": "add_player_4",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_5",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1920,
+                "y": 745,
+                "texture": "Add_player_button",
+                "setName": "add_player_5",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_6",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1155,
+                "y": 590,
+                "texture": "Add_player_button",
+                "setName": "add_player_6",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_7",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1380,
+                "y": 565,
+                "texture": "Add_player_button",
+                "setName": "add_player_7",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_8",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1515,
+                "y": 535,
+                "texture": "Add_player_button",
+                "setName": "add_player_8",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_9",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1694,
+                "y": 535,
+                "texture": "Add_player_button",
+                "setName": "add_player_9",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            },
+            {
+                "name": "add_player_10",
+                "type": "image",
+                "tag" : "add_player_button",
+                "x": 1920,
+                "y": 565,
+                "texture": "Add_player_button",
+                "setName": "add_player_10",
+                "alpha": 0.9,
+                "depth": 0,
+                "scale": [
+                    0.65,
+                    0.65
+                ],
+                "angle": 0,
+                "visible": true,
+                "blendMode": 0,
+                "scrollFactor": [
+                    1,
+                    1
+                ],
+                "interactive": true,
+                "origin": [
+                    0.5,
+                    0.5
+                ],
+                "flipX": false,
+                "flipY": false
+            }
+        ]
+    }
+}

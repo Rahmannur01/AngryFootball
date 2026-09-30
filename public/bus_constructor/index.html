@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Angry Football</title>
+
+    <link rel="stylesheet" href="/static/bus_constructor/ui.css">
+
+    <script src="phaser.min.js"></script>
+    <script src="/static/bus_constructor/UniformPipeline.js"></script>
+    <script src="/static/bus_constructor/objectFactory.js"></script>
+    <script src="/static/bus_constructor/Player.js"></script>
+    <script src="/static/bus_constructor/CameraManager.js"></script>
+    <script src="/static/bus_constructor/ui.js"></script>
+    <script src="/static/bus_constructor/BusManager.js"></script>
+</head>
+
+<body>
+
+    <div id="app">
+        <div id="game-container">
+
+            <button id="change-bus-btn" type="button">
+                Сменить каркас
+            </button>
+
+            <div id="players-panel">
+                <div class="player-card">
+                    <div class="player-photo"></div>
+                </div>
+                <div class="player-card">
+                    <div class="player-photo"></div>
+                </div>
+                <div class="player-card">
+                    <div class="player-photo"></div>
+                </div>
+                <div class="player-card">
+                    <div class="player-photo"></div>
+                </div>
+                <div class="player-card">
+                    <div class="player-photo"></div>
+                </div>
+                <div class="player-card">
+                    <div class="player-photo"></div>
+                </div>
+                <div class="player-card">
+                    <div class="player-photo"></div>
+                </div>
+                <div class="player-card">
+                    <div class="player-photo"></div>
+                </div>
+                <div class="player-card">
+                    <div class="player-photo"></div>
+                </div>
+                <div class="player-card">
+                    <div class="player-photo"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div id="menu-overlay">
+
+        <div class="menu-card">
+
+            <h1 class="menu-title">
+                Angry Football
+            </h1>
+
+            <button id="play-btn" class="play-btn">
+                Играть
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- PHONE ROTATION -->
+    <div id="rotate-overlay">
+
+        <div class="rotate-icon">
+            📱
+        </div>
+
+        <p>
+            Поверните телефон горизонтально
+        </p>
+
+    </div>
+    <script src="game.js"></script>
+    <script src="/static/bus_constructor/menu.js"></script>
+</body>
+
+</html>

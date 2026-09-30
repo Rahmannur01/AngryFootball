@@ -1,0 +1,374 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+
+    width: 100%;
+    height: 100%;
+
+    height: 100dvh;
+
+    overflow: hidden;
+
+    background: #111;
+}
+
+#app {
+    width: 100vw;
+
+    height: 100vh;
+    height: 100dvh;
+}
+
+#game-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #000;
+}
+
+#game-container canvas {
+    display: block;
+}
+
+#players-panel {
+    position: absolute;
+
+    top: 8px;
+    bottom: 8px;
+    right: 8px;
+    left: auto;
+
+    z-index: 20;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+
+    gap: clamp(4px, 0.5vw, 8px);
+    padding: clamp(5px, 0.6vw, 9px);
+
+    box-sizing: border-box;
+    width: max-content;
+    max-width: none;
+    height: auto;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: clamp(10px, 1vw, 14px);
+    background: rgba(20, 20, 20, 0.84);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+#players-panel::-webkit-scrollbar {
+    width: 5px;
+    height: auto;
+}
+
+#players-panel::-webkit-scrollbar {
+    height: 5px;
+}
+
+#players-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#players-panel::-webkit-scrollbar-thumb {
+    background:
+        rgba(255, 255, 255, 0.25);
+
+    border-radius: 999px;
+}
+
+.player-card {
+    width:
+        clamp(58px, 6.5vw, 96px);
+
+    height:
+        clamp(70px, 10vh, 110px);
+
+    flex-shrink: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    box-sizing: border-box;
+
+    border-radius:
+        clamp(7px, 0.7vw, 11px);
+
+    border:
+        2px solid rgba(255, 255, 255, 0.18);
+
+    background: #303030;
+
+    cursor: pointer;
+
+    user-select: none;
+
+    transition:
+        transform 0.05s ease,
+        border-color 0.05s ease,
+        background 0.05s ease,
+        box-shadow 0.05s ease;
+}
+
+.player-card:not(.selected):hover {
+    border-color: rgba(255, 255, 255, 0.75);
+    background: #3c3c3c;
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.35);
+}
+
+.player-card.selected {
+    border-color: #f0c94a;
+    background: #3c3c3c;
+    box-shadow: 0 0 12px rgba(240, 201, 74, 0.45);
+}
+
+.player-photo {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    box-sizing: border-box;
+
+    background:
+        radial-gradient(circle at 50% 40%,
+            #444 0%,
+            #282828 70%);
+}
+
+.player-photo img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* =========================================================
+   START MENU
+   ========================================================= */
+
+#menu-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1000;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background:
+        radial-gradient(circle at 50% 30%,
+            rgba(255, 163, 72, 0.25),
+            transparent 60%),
+        #12151c;
+}
+
+
+.menu-card {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 30px;
+
+    padding: 24px;
+
+    text-align: center;
+}
+
+
+.menu-title {
+    margin: 0;
+
+    font-size:
+        clamp(36px, 7vw, 72px);
+
+    font-weight: 800;
+
+    letter-spacing: 0.03em;
+
+    text-transform: uppercase;
+
+    color: white;
+
+    text-shadow:
+        0 0 24px rgba(255, 163, 72, 0.5);
+}
+
+
+.play-btn {
+    appearance: none;
+
+    border: none;
+
+    padding:
+        18px 60px;
+
+    border-radius: 999px;
+
+    background: #ffa348;
+
+    color: #12151c;
+
+    font-size:
+        clamp(18px, 3vw, 24px);
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 8px 24px rgba(255, 163, 72, 0.35);
+
+    transition:
+        transform 0.05s ease,
+        box-shadow 0.05s ease;
+}
+
+
+.play-btn:hover {
+    transform:
+        scale(1.04);
+}
+
+
+.play-btn:active {
+    transform:
+        scale(0.96);
+}
+
+
+/* =========================================================
+   ROTATE PHONE
+   ========================================================= */
+
+#rotate-overlay {
+    display: none;
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1100;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    padding: 24px;
+
+    box-sizing: border-box;
+
+    background: #12151c;
+
+    color: white;
+}
+
+
+.rotate-icon {
+    font-size: 48px;
+
+    margin-bottom: 16px;
+
+    animation:
+        rotate-phone 1.5s ease-in-out infinite;
+}
+
+
+#rotate-overlay p {
+    margin: 0;
+
+    font-size: 18px;
+
+    color: #ffa348;
+}
+
+#change-bus-btn {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 30;
+
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    background: #ffa348;
+    color: #12151c;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+#change-bus-btn:active {
+    background: #e88e35;
+}
+
+
+@keyframes rotate-phone {
+
+    0%,
+    100% {
+        transform:
+            rotate(0deg);
+    }
+
+    50% {
+        transform:
+            rotate(90deg);
+    }
+}
+
+@media (max-width: 900px) {
+
+    .player-card {
+        width: 56px;
+        height: 72px;
+    }
+
+    #players-panel {
+        gap: 4px;
+        padding: 5px;
+    }
+}
+
+@media (max-height: 500px) {
+    .player-card {
+        width: 46px;
+        height: 58px;
+    }
+}
