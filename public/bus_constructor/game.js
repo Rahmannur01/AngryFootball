@@ -32,7 +32,7 @@ class BusScene extends Phaser.Scene {
         );
         this.load.image(
             'Ball',
-            '/static/bus_constructor/assets/SoccerBall.png'
+            './assets/SoccerBall.png'
         );
 
         Object.entries(
