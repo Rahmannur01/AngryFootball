@@ -3,35 +3,35 @@
         "preload": [
             {
                 "key": "Background",
-                "file": "assets/Background_1.png"
+                "file": "./assets/Background_1.png"
             },
             {
                 "key": "Karkas",
-                "file": "assets/Karkas_1.png"
+                "file": "./assets/Karkas_1.png"
             },
             {
                 "key": "Obstacle_3",
-                "file": "assets/Obstacle_3.png"
+                "file": "./assets/Obstacle_3.png"
             },
             {
                 "key": "Obstacle_2",
-                "file": "assets/Obstacle_2.png"
+                "file": "./assets/Obstacle_2.png"
             },
             {
                 "key": "Obstacle_1",
-                "file": "assets/Obsatcle_7.png"
+                "file": "./assets/Obsatcle_7.png"
             },
             {
                 "key": "Obstacle_4",
-                "file": "assets/Obstacle_2.png"
+                "file": "./assets/Obstacle_2.png"
             },
             {
                 "key": "Bochka",
-                "file": "assets/Obstacle_10.png"
+                "file": "./assets/Obstacle_10.png"
             },
             {
                 "key": "Add_player_button",
-                "file": "assets/Add_player_button.png"
+                "file": "./assets/Add_player_button.png"
             }
         ],
         "objects": [

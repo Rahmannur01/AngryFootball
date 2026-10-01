@@ -62,8 +62,8 @@
                 "y": 765.0
             }
         ],
-        "Player_img": "/static/bus_constructor/assets/Player_1.png",
-        "Player_portret": "/static/bus_constructor/assets/Player_1_portret.png",
+        "Player_img": "./assets/Player_1.png",
+        "Player_portret": "./assets/Player_1_portret.png",
         "type" : 1
     },
     "Player_2": {
@@ -129,8 +129,8 @@
                 "y": 739.71354
             }
         ],
-        "Player_img": "/static/bus_constructor/assets/Player_2.png",
-        "Player_portret": "/static/bus_constructor/assets/Player_2_portret.png",
+        "Player_img": "./assets/Player_2.png",
+        "Player_portret": "./assets/Player_2_portret.png",
         "type" : 2
     },
     "Player_3": {
@@ -196,8 +196,8 @@
                 "y": 731.03299
             }
         ],
-        "Player_img": "/static/bus_constructor/assets/Player_3.png",
-        "Player_portret": "/static/bus_constructor/assets/Player_3_portret.png",
+        "Player_img": "./assets/Player_3.png",
+        "Player_portret": "./assets/Player_3_portret.png",
         "type" : 3
     },
     "Player_4": {
@@ -263,8 +263,8 @@
                 "y": 731.03299
             }
         ],
-        "Player_img": "/static/bus_constructor/assets/Player_4.png",
-        "Player_portret": "/static/bus_constructor/assets/Player_4_portret.png",
+        "Player_img": "./assets/Player_4.png",
+        "Player_portret": "./assets/Player_4_portret.png",
         "type" : 4
     },
     "Player_5": {
@@ -330,8 +330,8 @@
                 "y": 702.82118
             }
         ],
-        "Player_img": "/static/bus_constructor/assets/Player_5.png",
-        "Player_portret": "/static/bus_constructor/assets/Player_5_portret.png",
+        "Player_img": "./assets/Player_5.png",
+        "Player_portret": "./assets/Player_5_portret.png",
         "type" : 5
     },
     "Player_6": {
@@ -397,8 +397,8 @@
                 "y": 702.82118
             }
         ],
-        "Player_img": "/static/bus_constructor/assets/Player_6.png",
-        "Player_portret": "/static/bus_constructor/assets/Player_6_portret.png",
+        "Player_img": "./assets/Player_6.png",
+        "Player_portret": "./assets/Player_6_portret.png",
         "type" : 6
     },
     "Player_7": {
@@ -464,8 +464,8 @@
                 "y": 726.69271
             }
         ],
-        "Player_img": "/static/bus_constructor/assets/Player_7.png",
-        "Player_portret": "/static/bus_constructor/assets/Player_7_portret.png",
+        "Player_img": "./assets/Player_7.png",
+        "Player_portret": "./assets/Player_7_portret.png",
         "type" : 7
     }
 }
