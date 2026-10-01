@@ -1,47 +1,23 @@
-const menuOverlay =
-    document.getElementById(
-        'menu-overlay'
-    );
-
-const rotateOverlay =
-    document.getElementById(
-        'rotate-overlay'
-    );
-
-const playButton =
-    document.getElementById(
-        'play-btn'
-    );
-
-const gameContainer =
-    document.getElementById(
-        'game-container'
-    );
-
+const menuOverlay = document.getElementById('menu-overlay');
+const rotateOverlay = document.getElementById('rotate-overlay');
+const playButton = document.getElementById('play-btn');
+const gameContainer = document.getElementById('game-container');
+const fullscreenButton = document.getElementById('fullscreen-btn');
 
 // =========================================================
 // SCREEN
 // =========================================================
 
 function isPortrait() {
-    return (
-        window.innerHeight >
-        window.innerWidth
-    );
+    return (window.innerHeight > window.innerWidth);
 }
-
-
 
 // =========================================================
 // FULLSCREEN
 // =========================================================
 
 async function requestFullscreen() {
-
-    const element =
-        document.documentElement;
-
-
+    const element = document.documentElement;
     const request =
         element.requestFullscreen ||
         element.webkitRequestFullscreen ||
@@ -51,22 +27,16 @@ async function requestFullscreen() {
     if (!request) {
         return;
     }
-
-
     try {
-
         await request.call(
             element
         );
-
     }
     catch (error) {
-
         console.log(
             'Fullscreen недоступен:',
             error
         );
-
     }
 }
 
@@ -77,57 +47,34 @@ async function requestFullscreen() {
 // =========================================================
 
 async function lockLandscape() {
-
     try {
-
-        if (
-            screen.orientation &&
-            screen.orientation.lock
-        ) {
-
+        if (screen.orientation && screen.orientation.lock) {
             await screen.orientation.lock(
                 'landscape'
             );
-
         }
-
     }
     catch (error) {
-
         // Safari / iOS может
         // запрещать orientation.lock()
-
         console.log(
             'Landscape lock недоступен'
         );
-
     }
 }
-
-
 
 // =========================================================
 // ORIENTATION UI
 // =========================================================
 
 function updateOrientation() {
-
     if (isPortrait()) {
-
-        rotateOverlay.style.display =
-            'flex';
-
+        rotateOverlay.style.display = 'flex';
     }
     else {
-
-        rotateOverlay.style.display =
-            'none';
-
+        rotateOverlay.style.display = 'none';
     }
-
 }
-
-
 
 // =========================================================
 // REFRESH PHASER
@@ -245,7 +192,49 @@ if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', handleResize);
 }
 
+function updateFullscreenButton() {
+    const isFullscreen = Boolean(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement
+    );
+}
 
+fullscreenButton.onclick = async () => {
+    const isFullscreen = Boolean(
+        document.fullscreenElement ||
+        document.webkitFullscreenElement
+    );
+
+    try {
+        if (isFullscreen) {
+            const exit =
+                document.exitFullscreen ||
+                document.webkitExitFullscreen;
+
+            if (exit) {
+                await exit.call(document);
+            }
+        } else {
+            await requestFullscreen();
+        }
+    } catch (error) {
+        console.error('Ошибка переключения экрана:', error);
+    }
+
+    updateFullscreenButton();
+};
+
+document.addEventListener(
+    'fullscreenchange',
+    updateFullscreenButton
+);
+
+document.addEventListener(
+    'webkitfullscreenchange',
+    updateFullscreenButton
+);
+
+updateFullscreenButton();
 
 // =========================================================
 // RESIZE OBSERVER

@@ -317,25 +317,118 @@ body {
     color: #ffa348;
 }
 
+.game-button {
+    --button-top: #ffc36b;
+    --button-bottom: #f39435;
+    --button-edge: #ad591a;
+    --button-glow: rgba(255, 163, 72, 0.3);
+
+    appearance: none;
+    padding: 11px 22px;
+
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 12px;
+
+    background: linear-gradient(180deg,
+            var(--button-top),
+            var(--button-bottom));
+
+    color: #23180d;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 4px 0 var(--button-edge),
+        0 8px 18px rgba(0, 0, 0, 0.25);
+
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+
+    transition:
+        translate 120ms ease,
+        filter 120ms ease,
+        box-shadow 120ms ease;
+}
+
+#test-bus-btn,
+#exit-test-btn,
+#fullscreen-btn {
+    position: static;
+}
+
 #change-bus-btn {
     position: absolute;
     top: 12px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 30;
-
-    padding: 10px 20px;
-    border: none;
-    border-radius: 10px;
-    background: #ffa348;
-    color: #12151c;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
 }
 
-#change-bus-btn:active {
-    background: #e88e35;
+.game-button--test {
+    --button-top: #a5eb84;
+    --button-bottom: #65bd49;
+    --button-edge: #36752a;
+    --button-glow: rgba(117, 209, 84, 0.3);
+
+    color: #14250f;
+}
+
+@media (hover: hover) {
+    .game-button:hover:not(:disabled) {
+        translate: 0 -2px;
+        filter: brightness(1.08);
+
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.4),
+            0 6px 0 var(--button-edge),
+            0 10px 24px var(--button-glow);
+    }
+}
+
+.game-button:active:not(:disabled) {
+    translate: 0 3px;
+    filter: brightness(0.95);
+
+    box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.15),
+        0 1px 0 var(--button-edge),
+        0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.game-button:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 6px;
+}
+
+.game-button:disabled {
+    opacity: 0.5;
+    cursor: default;
+    box-shadow: none;
+}
+
+.game-button[hidden] {
+    display: none;
+}
+
+#top-left-buttons {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 30;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .game-button {
+        transition: none;
+    }
 }
 
 
@@ -370,5 +463,11 @@ body {
     .player-card {
         width: 46px;
         height: 58px;
+    }
+
+    .game-button {
+        padding: 8px 14px;
+        font-size: 13px;
+        border-radius: 9px;
     }
 }

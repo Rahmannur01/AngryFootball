@@ -13,6 +13,7 @@
     <script src="/static/bus_constructor/Player.js"></script>
     <script src="/static/bus_constructor/CameraManager.js"></script>
     <script src="/static/bus_constructor/ui.js"></script>
+    <script src="/static/bus_constructor/Ball.js"></script>
     <script src="/static/bus_constructor/BusManager.js"></script>
 </head>
 
@@ -20,10 +21,26 @@
 
     <div id="app">
         <div id="game-container">
-
-            <button id="change-bus-btn" type="button">
+            <button id="change-bus-btn" class="game-button" type="button">
                 Сменить каркас
             </button>
+
+            <div id="top-left-buttons">
+                <button id="test-bus-btn" class="game-button game-button--test" type="button">
+                    Тест автобуса
+                </button>
+
+                <button id="exit-test-btn" class="game-button" type="button" hidden>
+                    К настройке
+                </button>
+
+                <button id="fullscreen-btn" class="game-button" type="button" aria-label="Переключить полный экран">
+                    ⛶
+                </button>
+                <button id="restart-test-btn" class="game-button" type="button" hidden>
+                    ↻
+                </button>
+            </div>
 
             <div id="players-panel">
                 <div class="player-card">
