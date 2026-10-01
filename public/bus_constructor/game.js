@@ -695,8 +695,8 @@ window.startBusGame = function () {
 
     startPromise = (async () => {
         const [scenesData, playerTypes] = await Promise.all([
-            fetchJSON('/static/bus_constructor/scenes_data.json'),
-            fetchJSON('/static/bus_constructor/Player_types.json')
+            fetchJSON('./scenes_data.json'),
+            fetchJSON('./Player_types.json')
         ]);
         window.SCENES_DATA = scenesData;
         window.PLAYER_TYPES = playerTypes;
