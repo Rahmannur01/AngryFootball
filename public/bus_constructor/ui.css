@@ -40,17 +40,20 @@ body {
 #players-panel {
     position: absolute;
 
-    top: 8px;
-    bottom: 8px;
+    top: 50%;
+    bottom: auto;
     right: 8px;
     left: auto;
+    transform: translateY(-50%);
 
     z-index: 20;
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    grid-auto-rows: max-content;
+    align-content: start;
+    align-items: start;
+    justify-content: center;
 
     gap: clamp(4px, 0.5vw, 8px);
     padding: clamp(5px, 0.6vw, 9px);
@@ -58,7 +61,8 @@ body {
     box-sizing: border-box;
     width: max-content;
     max-width: none;
-    height: auto;
+    height: max-content;
+    max-height: calc(100% - 16px);
 
     overflow-x: hidden;
     overflow-y: auto;

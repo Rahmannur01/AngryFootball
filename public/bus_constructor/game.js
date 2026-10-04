@@ -19,10 +19,12 @@ class BusScene extends Phaser.Scene {
         this.initialBusKey = data?.busKey || BUS_KEYS[0];
 
         this.players = [];
+        this.selectedSeat = null;
         this.busManager = null;
         this.busSceneUI = new BusSceneUI();
         this.playerTypesList = [1, 2, 2, 1, 3, 4, 7, 6, 7, 6];
         this.ball = null;
+        this.goalkeeper = null;
     }
 
     preload() {
@@ -30,10 +32,9 @@ class BusScene extends Phaser.Scene {
             this,
             window.SCENES_DATA
         );
-        this.load.image(
-            'Ball',
-            './assets/SoccerBall.png'
-        );
+        this.load.image('Ball', './assets/SoccerBall.png');
+        this.load.image('FootballGoal', './assets/FootballGoal.png');
+        this.load.image('Goalkeeper', './assets/Goalkeeper.png');
 
         Object.entries(
             window.PLAYER_TYPES
@@ -61,26 +62,30 @@ class BusScene extends Phaser.Scene {
 
         });
 
+        this.busSceneUI.onCardSelected = () => {
+            this.placePlayerOnSelectedSeat();
+        };
+
         this.busSceneUI.drawPortraits(
             this.playerTypesList
         );
-        this.busManager =
-            new BusManager(
-                this,
-                BUS_KEYS
-            );
-        this.cameraManager =
-            new CameraManager(
-                this,
-                {
-                    worldWidth: 2500,
-                    worldHeight: 1080
-                }
-            );
+        this.busManager = new BusManager(
+            this,
+            BUS_KEYS
+        );
+        this.cameraManager = new CameraManager(
+            this,
+            {
+                worldWidth: 2500,
+                worldHeight: 1080
+            }
+        );
         this.cameraManager.setup();
         this.loadBus(
             this.initialBusKey
         );
+        this.footballGoal = new FootballGoal(this);
+        this.footballGoal.sprite.setDepth(10);
 
         document.getElementById('test-bus-btn').onclick = () => {
             this.startBusTest();
@@ -152,20 +157,72 @@ class BusScene extends Phaser.Scene {
 
         this.cameraManager.fitObject(bus, 60);
     }
+    // Шаг 1: игрок нажимает на свободное место в автобусе.
     onAddPlayerButtonClick(buttonObj, cfg) {
-        if (!buttonObj.visible || this.busSceneUI.currentPlayerType === -1) {
+        if (!buttonObj.visible || this.ball) {
             return;
         }
+        this.selectSeat(buttonObj, cfg);
+    }
+
+    selectSeat(buttonObj, cfg) {
+        // Повторный клик по тому же месту снимает выбор.
+        if (this.selectedSeat?.buttonObj === buttonObj) {
+            this.clearSeatSelection();
+            return;
+        }
+        this.clearSeatSelection();
+
+        const baseAlpha = buttonObj.alpha;
+        const tween = this.tweens.add({
+            targets: buttonObj,
+            alpha: baseAlpha * 0.4,
+            duration: 400,
+            yoyo: true,
+            repeat: -1
+        });
+        this.selectedSeat = { buttonObj, cfg, baseAlpha, tween };
+    }
+
+    clearSeatSelection() {
+        const seat = this.selectedSeat;
+        if (!seat) {
+            return;
+        }
+        seat.tween.stop();
+        if (seat.buttonObj.scene) {
+            seat.buttonObj.setAlpha(seat.baseAlpha);
+        }
+        this.selectedSeat = null;
+    }
+
+    // Шаг 2: игрок нажимает на карточку, и персонаж садится на выбранное место.
+    placePlayerOnSelectedSeat() {
+        const seat = this.selectedSeat;
+        const type = this.busSceneUI.currentPlayerType;
+
+        // Место не выбрано: карточку не запоминаем.
+        if (!seat || type === -1 || this.ball) {
+            this.busSceneUI.clearSelection();
+            return;
+        }
+
+        this.clearSeatSelection();
+        this.placePlayer(seat.buttonObj, seat.cfg, type);
+    }
+
+    // Общая логика посадки игрока на место.
+    // Используется и при клике на карточку, и при восстановлении после теста.
+    placePlayer(buttonObj, cfg, type) {
         buttonObj.setVisible(false);
         buttonObj.disableInteractive();
-        const player =
-            new Player(this, {
-                x: buttonObj.x,
-                y: buttonObj.y,
-                type: this.busSceneUI.currentPlayerType,
-                scale: 0.2,
-                teamColor: 0xff2020
-            });
+        const player = new Player(this, {
+            x: buttonObj.x,
+            y: buttonObj.y,
+            type,
+            scale: 0.2,
+            teamColor: 0xffffff
+        });
         const entry = {
             seatName: cfg.name,
             x: buttonObj.x,
@@ -188,6 +245,7 @@ class BusScene extends Phaser.Scene {
         );
     }
     destroyPlayers() {
+        this.clearSeatSelection?.();
         if (!this.players) {
             return;
         }
@@ -264,12 +322,20 @@ class BusScene extends Phaser.Scene {
             }
         });
 
-        // Очищаем выбранную карточку.
+        // Очищаем выбранную карточку и место.
         this.busSceneUI.clearSelection();
+        this.clearSeatSelection();
 
         this.ball = new Ball(this, {
             x: 350,
             y: 900
+        });
+
+        this.goalkeeper = new Goalkeeper(this, {
+            x: this.footballGoal.sprite.x - 170,
+            y: 830,
+            scale: 0.2,
+            teamColor: 0xb066de
         });
 
         this.cameraManager.stopFollow();
@@ -308,6 +374,9 @@ class BusScene extends Phaser.Scene {
         this.playerHealthMap?.forEach(({ bar }) => bar.destroy());
         this.playerHealthMap?.clear();
 
+        this.goalkeeper?.destroy();
+        this.goalkeeper = null;
+
         this.aimGraphics?.destroy();
         this.aimGraphics = null;
 
@@ -345,10 +414,12 @@ class BusScene extends Phaser.Scene {
             this.busSceneUI.currentPlayerType = saved.type;
             this.busSceneUI.currentClickedCard = saved.card;
 
-            // Используем существующую логику размещения.
-            this.onAddPlayerButtonClick(seatButton, {
-                name: saved.seatName
-            });
+            // Используем общую логику размещения.
+            this.placePlayer(
+                seatButton,
+                { name: saved.seatName },
+                saved.type
+            );
         }
 
         this.busSceneUI.clearSelection();
@@ -380,7 +451,7 @@ class BusScene extends Phaser.Scene {
 
             this.isAiming = true;
 
-            this.cameraManager.smoothZoom(1.7);
+            //this.cameraManager.smoothZoom(1.7);
         };
 
         this.input.on('pointerdown', this.ballPointerDown);
@@ -507,6 +578,19 @@ class BusScene extends Phaser.Scene {
                 bar
             });
         });
+        if (this.goalkeeper) {
+            const bar = this.add.graphics().setDepth(20);
+
+            this.playerHealthMap.set(this.goalkeeper.sprite.body, {
+                entry: {
+                    player: this.goalkeeper,
+                    isGoalkeeper: true
+                },
+                hp: 2,
+                maxHp: 2,
+                bar
+            });
+        }
 
         this.playerCollisionHandler = (event) => {
             event.pairs.forEach(({ bodyA, bodyB }) => {
@@ -558,7 +642,7 @@ class BusScene extends Phaser.Scene {
             100
         );
 
-        this.cameraManager.shake(200, 0.02);
+        //this.cameraManager.shake(200, 0.02);
 
         data.bar.destroy();
         this.playerHealthMap.delete(body);
@@ -570,6 +654,9 @@ class BusScene extends Phaser.Scene {
         }
 
         data.entry.player.destroy();
+        if (data.entry.isGoalkeeper) {
+            this.goalkeeper = null;
+        }
     }
 
     drawPlayerHealthBars() {

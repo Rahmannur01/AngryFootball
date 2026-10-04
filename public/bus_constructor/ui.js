@@ -11,6 +11,9 @@ class BusSceneUI {
 
         this.currentPlayerType = -1;
         this.currentClickedCard = null;
+
+        // Вызывается при клике на карточку: (type, card)
+        this.onCardSelected = null;
     }
 
 
@@ -49,6 +52,9 @@ class BusSceneUI {
                 this.currentPlayerType = type;
                 this.currentClickedCard = card;
                 this.clickedCard(card);
+                if (this.onCardSelected) {
+                    this.onCardSelected(type, card);
+                }
             };
         }
     }
