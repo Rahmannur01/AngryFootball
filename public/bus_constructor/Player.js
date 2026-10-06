@@ -75,7 +75,7 @@ class Player {
             slop: 0.05,
             ignoreGravity: false,
             frictionAir: 0.01,
-            sleepThreshold: 60,
+            sleepThreshold: 0,
             shape: {
                 type: 'fromVerts',
 
