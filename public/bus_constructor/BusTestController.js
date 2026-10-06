@@ -52,6 +52,7 @@ class BusTestController {
                 onDeath: (entry) => this.onCharacterDeath(entry)
             });
             this.lineup.getPlayers().forEach(entry => this.health.register(entry));
+            this.lineup.setPlayersSleepThreshold();
             this.health.register({ player: this.goalkeeper, isGoalkeeper: true });
             this.health.update();
             return true;

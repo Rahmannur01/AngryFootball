@@ -108,6 +108,17 @@ class LineupController {
         }
     }
 
+    setPlayersSleepThreshold(val = 0) {
+        const Sleeping = Phaser.Physics.Matter.Matter.Sleeping;
+
+        this.players.forEach(({ player }) => {
+            const body = player.sprite.body;
+
+            body.sleepThreshold = val;
+            Sleeping.set(body, false);
+        });
+    }
+
     setTeamColor(color) {
         this.players.forEach(({ player }) => player.setTeamColor(color));
     }
