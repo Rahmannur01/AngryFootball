@@ -48,7 +48,7 @@ class FootballGoal {
         this.sprite
             .setName('FootballGoal')
             .setAlpha(1)
-            .setDepth(0)
+            .setDepth(15)
             .setScale(scale)
             .setAngle(0)
             .setVisible(true)

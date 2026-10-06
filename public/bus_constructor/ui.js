@@ -53,7 +53,7 @@ class BusSceneUI {
                 this.currentClickedCard = card;
                 this.clickedCard(card);
                 if (this.onCardSelected) {
-                    this.onCardSelected(type, card);
+                    this.onCardSelected(type, card, i);
                 }
             };
         }
@@ -91,44 +91,33 @@ class BusSceneUI {
     }
 
 
-    playerAdded() {
-
-        if (!this.currentClickedCard) {
-            return;
-        }
-
-
-        this.currentClickedCard.classList.remove('selected');
-        const portrait =
-            this.currentClickedCard.querySelector(
-                '.player-photo'
-            );
-        if (portrait) {
-            portrait.innerHTML = '';
-        }
-        this.currentPlayerType = -1;
-        this.currentClickedCard = null;
+    markCardUsed(cardId) {
+        const portrait = this.portraitElements[cardId];
+        if (portrait) portrait.innerHTML = '';
+        this.clearSelection();
     }
-    playerReturned(type) {
 
-        const index =
-            this.playerTypesList.indexOf(type);
-
-
-        if (index === -1) {
-            return;
-        }
-
-
-        const element =
-            this.portraitElements[index];
-
-
-        this.drawPortrait(
-            type,
-            element
-        );
+    restoreCard(cardId, type) {
+        this.drawPortrait(type, this.portraitElements[cardId]);
     }
+
+    setTestMode(active) {
+        document.getElementById('players-panel').style.display = active ? 'none' : '';
+        document.getElementById('test-bus-btn').hidden = active;
+        document.getElementById('change-bus-btn').hidden = active;
+        document.getElementById('exit-test-btn').hidden = !active;
+        document.getElementById('restart-test-btn').hidden = !active;
+    }
+
+    destroy() {
+        this.clearSelection();
+        for (const element of this.portraitElements) {
+            const card = element.closest('.player-card');
+            if (card) card.onclick = null;
+        }
+        this.onCardSelected = null;
+    }
+
     getSelectedPlayerType() {
         return this.currentPlayerType;
     }
