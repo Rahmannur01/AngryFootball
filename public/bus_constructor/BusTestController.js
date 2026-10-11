@@ -50,7 +50,8 @@ class BusTestController {
             this.camera.follow(this.ball.sprite);
             this.ballControls = new BallInputController(this.scene, this.ball, {
                 onRelease: () => this.camera.resetZoom(),
-                onShot: this.onShotAction.bind(this)
+                onShot: this.onShotAction.bind(this),
+                onAbility: this.explode.bind(this)
             });
             this.scene.setupParticles();
             this.health = new HealthSystem(this.scene, {
@@ -118,20 +119,60 @@ class BusTestController {
         }
     }
 
-    getAllDynamicBodies() {
+    getAllDynamicBodies(isPlayersIn = false) {
         const busBodies = Object.values(
             this.busManager.getObjects() || {}
         ).map(obj => obj.body);
 
-        //const playerBodies = this.lineup.getPlayers().map(entry => entry.player.sprite.body);
+        const playerBodies = isPlayersIn
+            ? this.lineup.getPlayers().map(entry => entry.player.sprite.body)
+            : [];
+
         return [
             ...busBodies,
-            //...playerBodies,
+            ...playerBodies,
             this.ball?.sprite.body,
-            //this.goalkeeper?.sprite.body
+            ...(isPlayersIn ? [this.goalkeeper?.sprite.body] : [])
         ].filter(body =>
             body && !body.isStatic && !body.isSensor
         );
+    }
+    explode(power = 0.3, radius = 300) {
+        if (!this.ball?.hasBeenShot || power <= 0 || radius <= 0) {
+            return false;
+        }
+
+        const { Body, Sleeping } = Phaser.Physics.Matter.Matter;
+        const ballBody = this.ball.sprite.body;
+        const center = { ...ballBody.position };
+
+        for (const body of this.getAllDynamicBodies(true)) {
+            if (body === ballBody) continue;
+
+            const dx = body.position.x - center.x;
+            const dy = body.position.y - center.y;
+            const distance = Math.hypot(dx, dy);
+
+            if (distance >= radius) continue;
+
+            const strength = power * (1 - distance / radius);
+
+            // При совпадении центров толкаем вверх.
+            const directionX = distance > 0 ? dx / distance : 0;
+            const directionY = distance > 0 ? dy / distance : -1;
+
+            Sleeping.set(body, false);
+
+            Body.applyForce(body, body.position, {
+                x: directionX * strength,
+                y: directionY * strength
+            });
+        }
+
+        // Новое движение отменяет накопленное ожидание остановки.
+        this.settleTimer = 0;
+
+        return true;
     }
 
     onCharacterDeath(entry) {
@@ -148,7 +189,7 @@ class BusTestController {
         this.shootUsed -= 1;
         this.ui.setShootCount(this.shootUsed);
 
-        if (this.shootUsed <= 0){
+        if (this.shootUsed <= 0) {
             this.ballControls.setGameFinished(true);
             return;
         }

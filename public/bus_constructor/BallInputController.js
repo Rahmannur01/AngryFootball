@@ -1,7 +1,7 @@
 // Ввод и прицел. Физика и выполнение удара остаются в Ball.
 class BallInputController {
     static MAX_DRAG = 150;
-    constructor(scene, ball, { onRelease = () => { }, onShot = () => {} } = {}) {
+    constructor(scene, ball, { onRelease = () => { }, onShot = () => {}, onAbility = () => {} } = {}) {
         this.input = scene.input;
         this.ball = ball;
         this.onRelease = onRelease;
@@ -9,6 +9,7 @@ class BallInputController {
         this.isAiming = false;
 
         this.onShot = onShot;
+        this.onAbility = onAbility;
         this.isGameFinished = false;
 
         this.aimGraphics = scene.add.graphics();
@@ -16,8 +17,16 @@ class BallInputController {
 
         this.ballPointerDown = (pointer) => {
             if (!this.ball || this.isGameFinished) return;
-            if (this.ball.isMoving || !this.ball.isReady) return;
-            if (this.ball.hasBeenShot) return;
+
+            if (this.ball.hasBeenShot){
+                //this.onAbility();
+                this.ball.boost();
+                return;
+            }
+
+            if(this.ball.isMoving || !this.ball.isReady){
+                return;
+            }
 
             this.startPoint = {
                 x: pointer.worldX,

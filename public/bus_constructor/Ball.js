@@ -19,6 +19,7 @@ class Ball {
         this.isReady = false;
         this.hasBeenShot = false;
         this.stillTimer = 0;
+        this.hasBeenBoosted = false;
 
         this.sprite = scene.matter.add.image(x, y, texture, null, {
             friction: 0.1,
@@ -67,6 +68,31 @@ class Ball {
 
         return true;
     }
+    boost(multiplier = 1.5) {
+        if (!this.hasBeenShot || this.hasBeenBoosted) {
+            return false;
+        }
+
+        const { x, y } = this.sprite.body.velocity;
+        const speed = Math.hypot(x, y);
+
+        if (speed <= this.stillThreshold) {
+            return false;
+        }
+
+        this.sprite.setAwake();
+        this.sprite.setVelocity(
+            x * multiplier,
+            y * multiplier
+        );
+
+        this.hasBeenBoosted = true;
+        this.isMoving = true;
+        this.isReady = false;
+        this.stillTimer = 0;
+
+        return true;
+    }
 
     reset() {
         this.sprite.setAwake();
@@ -82,6 +108,7 @@ class Ball {
         this.isReady = false;
         this.isMoving = false;
         this.stillTimer = 0;
+        this.hasBeenBoosted = false;
 
         return this;
     }
