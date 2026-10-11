@@ -1,18 +1,21 @@
 // Ввод и прицел. Физика и выполнение удара остаются в Ball.
 class BallInputController {
     static MAX_DRAG = 150;
-    constructor(scene, ball, { onRelease = () => { } } = {}) {
+    constructor(scene, ball, { onRelease = () => { }, onShot = () => {} } = {}) {
         this.input = scene.input;
         this.ball = ball;
         this.onRelease = onRelease;
         this.startPoint = null;
         this.isAiming = false;
 
+        this.onShot = onShot;
+        this.isGameFinished = false;
+
         this.aimGraphics = scene.add.graphics();
         this.aimGraphics.setDepth(100);
 
         this.ballPointerDown = (pointer) => {
-            if (!this.ball) return;
+            if (!this.ball || this.isGameFinished) return;
             if (this.ball.isMoving || !this.ball.isReady) return;
             if (this.ball.hasBeenShot) return;
 
@@ -28,7 +31,7 @@ class BallInputController {
         this.input.on('pointerdown', this.ballPointerDown);
 
         this.ballPointerMove = (pointer) => {
-            if (!this.startPoint || this.ball.isMoving) return;
+            if (!this.startPoint || this.ball.isMoving || this.isGameFinished) return;
 
             const angle = Phaser.Math.Angle.Between(
                 pointer.worldX,
@@ -48,7 +51,7 @@ class BallInputController {
         };
 
         this.ballPointerUp = (pointer) => {
-            if (!this.startPoint || this.ball.isMoving) return;
+            if (!this.startPoint || this.ball.isMoving || this.isGameFinished) return;
 
             const dragDistance = Phaser.Math.Distance.Between(
                 pointer.worldX,
@@ -70,7 +73,9 @@ class BallInputController {
                 1
             );
 
-            this.ball.shoot(angle, power);
+            if(this.ball.shoot(angle, power)){
+                this.onShot();
+            }
 
             this.aimGraphics.clear();
             this.startPoint = null;
@@ -124,6 +129,10 @@ class BallInputController {
 
             this.aimGraphics.fillCircle(dotX, dotY, radius);
         }
+    }
+
+    setGameFinished(isFinished){
+        this.isGameFinished = isFinished;
     }
 
     destroy() {

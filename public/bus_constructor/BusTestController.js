@@ -1,5 +1,7 @@
 // Жизненный цикл теста. Эффекты пока подключаются через сцену.
 class BusTestController {
+    static MAX_SHOT_COUNT = 3;
+
     constructor(scene, { lineup, busManager, camera, ui, goal, requiredPlayers = 10 }) {
         this.scene = scene;
         this.lineup = lineup;
@@ -14,6 +16,8 @@ class BusTestController {
         this.health = null;
         this.goalkeeper = null;
         this.snapshot = null;
+        this.allDynamicObjects = null;
+        this.shootUsed = BusTestController.MAX_SHOT_COUNT;
     }
 
     start() {
@@ -45,7 +49,8 @@ class BusTestController {
             this.camera.focusOnObject(this.ball.sprite);
             this.camera.follow(this.ball.sprite);
             this.ballControls = new BallInputController(this.scene, this.ball, {
-                onRelease: () => this.camera.resetZoom()
+                onRelease: () => this.camera.resetZoom(),
+                onShot: this.onShotAction.bind(this)
             });
             this.scene.setupParticles();
             this.health = new HealthSystem(this.scene, {
@@ -55,6 +60,10 @@ class BusTestController {
             this.lineup.setPlayersSleepThreshold();
             this.health.register({ player: this.goalkeeper, isGoalkeeper: true });
             this.health.update();
+
+            this.shootUsed = BusTestController.MAX_SHOT_COUNT;
+            this.ui.setShootCount(this.shootUsed);
+
             return true;
         } catch (error) {
             this.exit();
@@ -69,6 +78,9 @@ class BusTestController {
         this.clearResources();
         this.active = false;
         this.snapshot = null;
+
+        this.shootUsed = BusTestController.MAX_SHOT_COUNT;
+        this.ui.setShootCount(this.shootUsed);
 
         this.ui.setTestMode(false);
         this.scene.loadBus(key);
@@ -87,6 +99,39 @@ class BusTestController {
     update(delta) {
         this.ball?.update(delta);
         this.health?.update();
+
+        if (!this.ball?.hasBeenShot) {
+            this.settleTimer = 0;
+            return;
+        }
+
+        if (this.isAnyObjectMoving()) {
+            this.settleTimer = 0;
+            return;
+        }
+
+        this.settleTimer += delta;
+
+        if (this.settleTimer >= 500) {
+            this.ball.reset();
+            this.settleTimer = 0;
+        }
+    }
+
+    getAllDynamicBodies() {
+        const busBodies = Object.values(
+            this.busManager.getObjects() || {}
+        ).map(obj => obj.body);
+
+        //const playerBodies = this.lineup.getPlayers().map(entry => entry.player.sprite.body);
+        return [
+            ...busBodies,
+            //...playerBodies,
+            this.ball?.sprite.body,
+            //this.goalkeeper?.sprite.body
+        ].filter(body =>
+            body && !body.isStatic && !body.isSensor
+        );
     }
 
     onCharacterDeath(entry) {
@@ -96,6 +141,16 @@ class BusTestController {
             this.goalkeeper = null;
         } else {
             this.lineup.removeDestroyedPlayer(entry);
+        }
+    }
+
+    onShotAction() {
+        this.shootUsed -= 1;
+        this.ui.setShootCount(this.shootUsed);
+
+        if (this.shootUsed <= 0){
+            this.ballControls.setGameFinished(true);
+            return;
         }
     }
 
@@ -114,6 +169,19 @@ class BusTestController {
         this.goalkeeper = null;
         this.ball?.destroy();
         this.ball = null;
+    }
+
+    isAnyObjectMoving(speedThreshold = 0.05, angularThreshold = 0.01) {
+        return this.getAllDynamicBodies().some(body => {
+            if (body.isSleeping) return false;
+
+            const speed = Math.hypot(
+                body.velocity.x,
+                body.velocity.y
+            );
+
+            return speed > speedThreshold || Math.abs(body.angularVelocity) > angularThreshold;
+        });
     }
 
     destroy() {

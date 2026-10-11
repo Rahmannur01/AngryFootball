@@ -3,11 +3,10 @@ class BusSceneUI {
         this.playerTypesPortraitPath = {};
         this.playerTypesList = [];
 
-        this.portraitElements =
-            document.getElementsByClassName('player-photo');
-
-        this.portraitElementsParent =
-            document.getElementsByClassName('player-card');
+        this.portraitElements = document.getElementsByClassName('player-photo');
+        this.portraitElementsParent = document.getElementsByClassName('player-card');
+        this.shootUsedElement = document.getElementById('shots-counter');
+        this.shootUsedCounterElement = document.getElementById('shots-count');
 
         this.currentPlayerType = -1;
         this.currentClickedCard = null;
@@ -80,7 +79,6 @@ class BusSceneUI {
         `;
     }
 
-
     clickedCard(selectedCard) {
         for (let i = 0; i < this.portraitElementsParent.length; i++) {
             this.portraitElementsParent[i].classList.remove('selected');
@@ -107,6 +105,11 @@ class BusSceneUI {
         document.getElementById('change-bus-btn').hidden = active;
         document.getElementById('exit-test-btn').hidden = !active;
         document.getElementById('restart-test-btn').hidden = !active;
+        this.shootUsedElement.hidden = !active;
+    }
+
+    setShootCount(count){
+        this.shootUsedCounterElement.textContent = `${count}`;
     }
 
     destroy() {

@@ -89,23 +89,14 @@ class Ball {
     update(delta) {
         this.isMoving = this.getSpeed() > this.stillThreshold;
 
-        if (this.isMoving) {
+        if (this.hasBeenShot || this.isMoving) {
             this.stillTimer = 0;
             this.isReady = false;
             return;
         }
 
         this.stillTimer += delta;
-
-        if (this.stillTimer < this.stillDuration) {
-            return;
-        }
-
-        if (this.hasBeenShot) {
-            this.reset();
-        } else {
-            this.isReady = true;
-        }
+        this.isReady = this.stillTimer >= this.stillDuration;
     }
 
     destroy() {
