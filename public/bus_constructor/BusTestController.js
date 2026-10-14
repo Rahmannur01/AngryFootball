@@ -195,7 +195,7 @@ class BusTestController {
         this.ui.updateSpecialShotCount(this.specialShotsLeft);
     }
 
-    explode(power = 0.3, radius = 320) {
+    explode(power = 0.37, radius = 300) {
         if (!this.ball?.hasBeenShot || power <= 0 || radius <= 0) {
             return false;
         }
