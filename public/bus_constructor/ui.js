@@ -13,6 +13,21 @@ class BusSceneUI {
 
         // Вызывается при клике на карточку: (type, card)
         this.onCardSelected = null;
+
+        this.shotTypesPanel = document.getElementById('shot-types-panel');
+        this.shotTypeButtons = this.shotTypesPanel.querySelectorAll('.shot-type-btn');
+        this.bombCountElement = document.getElementById("bomb-count");
+        this.boostCountElement = document.getElementById("boost-count");
+
+        this.selectedShotType = 'normal';
+
+        this.shotTypeButtons.forEach(button => {
+            button.onclick = () => {
+                this.selectShotType(button.dataset.shotType);
+            };
+        });
+
+        this.selectShotType('normal');
     }
 
 
@@ -106,10 +121,57 @@ class BusSceneUI {
         document.getElementById('exit-test-btn').hidden = !active;
         document.getElementById('restart-test-btn').hidden = !active;
         this.shootUsedElement.hidden = !active;
+        this.shotTypesPanel.hidden = !active;
     }
 
-    setShootCount(count){
+    setActiveShotTypesPanel(active, specialShotsLeft) {
+        this.shotTypesPanel.classList.toggle('locked', !active);
+
+        this.shotTypeButtons.forEach(button => {
+            const type = button.dataset.shotType;
+            const available =
+                type === 'normal' || specialShotsLeft[type] > 0;
+
+            button.disabled = !active || !available;
+        });
+
+        if (
+            active &&
+            this.selectedShotType !== 'normal' &&
+            specialShotsLeft[this.selectedShotType] <= 0
+        ) {
+            this.selectShotType('normal');
+        }
+    }
+
+    updateSpecialShotCount(specialShotsLeft) {
+        this.bombCountElement.textContent = specialShotsLeft.bomb;
+        this.boostCountElement.textContent = specialShotsLeft.boost;
+    }
+
+    setShootCount(count) {
         this.shootUsedCounterElement.textContent = `${count}`;
+    }
+
+    selectShotType(type) {
+        const selectedButton = [...this.shotTypeButtons].find(
+            button => button.dataset.shotType === type
+        );
+
+        if (!selectedButton || selectedButton.disabled) return;
+
+        this.selectedShotType = type;
+
+        this.shotTypeButtons.forEach(button => {
+            const selected = button === selectedButton;
+
+            button.classList.toggle('selected', selected);
+            button.setAttribute('aria-pressed', String(selected));
+        });
+    }
+
+    getSelectedShotType() {
+        return this.selectedShotType;
     }
 
     destroy() {
@@ -118,6 +180,9 @@ class BusSceneUI {
             const card = element.closest('.player-card');
             if (card) card.onclick = null;
         }
+        this.shotTypeButtons.forEach(button => {
+            button.onclick = null;
+        });
         this.onCardSelected = null;
     }
 

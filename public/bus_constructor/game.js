@@ -195,45 +195,8 @@ class BusScene extends Phaser.Scene {
         return this.busTest.exit();
     }
 
-    // Эффекты пока остаются в сцене.
-    clearTestSystems() {
-        this.hitEmitter?.destroy();
-        this.hitEmitter = null;
-    }
-
     restartBusTest() {
         return this.busTest.restart();
-    }
-
-    setupParticles() {
-        if (!this.textures.exists('particle_dot')) {
-            const graphics = this.make.graphics({
-                x: 0,
-                y: 0,
-                add: false
-            });
-
-            graphics.fillStyle(0xffffff, 1);
-            graphics.fillCircle(4, 4, 4);
-            graphics.generateTexture('particle_dot', 8, 8);
-            graphics.destroy();
-        }
-
-        this.hitEmitter = this.add.particles(0, 0, 'particle_dot', {
-            speed: { min: 100, max: 300 },
-            angle: { min: 0, max: 360 },
-            scale: { start: 1, end: 0 },
-            lifespan: 400,
-            quantity: 10,
-            emitting: false
-        });
-
-        this.hitEmitter.setDepth(15);
-    }
-
-    spawnHitParticles(x, y, color = 0xffffff, count = 10) {
-        this.hitEmitter.setParticleTint(color);
-        this.hitEmitter.explode(count, x, y);
     }
 
     update(time, delta) {

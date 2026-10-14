@@ -33,6 +33,7 @@ class Ball {
             }
         });
 
+        this.isActive = true;
         this.sprite.setName('Ball');
         this.sprite.setScale(scale);
     }
@@ -68,7 +69,7 @@ class Ball {
 
         return true;
     }
-    boost(multiplier = 1.5) {
+    boost(multiplier = 1.8) {
         if (!this.hasBeenShot || this.hasBeenBoosted) {
             return false;
         }
@@ -94,7 +95,30 @@ class Ball {
         return true;
     }
 
+    deactivate() {
+        if (!this.isActive) return;
+
+        this.isActive = false;
+
+        this.sprite.setVisible(false);
+        this.sprite.setVelocity(0, 0);
+        this.sprite.setAngularVelocity(0);
+
+        this.scene.matter.world.remove(this.sprite.body);
+
+        this.isMoving = false;
+        this.isReady = false;
+        this.stillTimer = 0;
+    }
+
     reset() {
+        if (!this.isActive) {
+            this.scene.matter.world.add(this.sprite.body);
+            this.isActive = true;
+        }
+
+        this.sprite.setVisible(true);
+
         this.sprite.setAwake();
         this.sprite.setPosition(
             this.startPosition.x,
@@ -114,6 +138,8 @@ class Ball {
     }
 
     update(delta) {
+        if (!this.isActive) return;
+
         this.isMoving = this.getSpeed() > this.stillThreshold;
 
         if (this.hasBeenShot || this.isMoving) {

@@ -1,6 +1,8 @@
 // Жизненный цикл теста. Эффекты пока подключаются через сцену.
 class BusTestController {
-    static MAX_SHOT_COUNT = 3;
+    static MAX_SHOT_COUNT = 10;
+    static MAX_BOMB_SHOT = 3;
+    static MAX_BOOST_SHOT = 3;
 
     constructor(scene, { lineup, busManager, camera, ui, goal, requiredPlayers = 10 }) {
         this.scene = scene;
@@ -15,9 +17,16 @@ class BusTestController {
         this.ballControls = null;
         this.health = null;
         this.goalkeeper = null;
+        this.particles = null;
         this.snapshot = null;
         this.allDynamicObjects = null;
-        this.shootUsed = BusTestController.MAX_SHOT_COUNT;
+        this.isShotAbilityUsed = false;
+        this.shotUsed = BusTestController.MAX_SHOT_COUNT;
+
+        this.specialShotsLeft = {
+            boost: BusTestController.MAX_BOOST_SHOT,
+            bomb: BusTestController.MAX_BOMB_SHOT
+        };
     }
 
     start() {
@@ -48,12 +57,14 @@ class BusTestController {
             this.camera.setZoomMultiplier(1, true);
             this.camera.focusOnObject(this.ball.sprite);
             this.camera.follow(this.ball.sprite);
+
             this.ballControls = new BallInputController(this.scene, this.ball, {
                 onRelease: () => this.camera.resetZoom(),
                 onShot: this.onShotAction.bind(this),
-                onAbility: this.explode.bind(this)
+                onAbilityAction: this.onAbilityAction.bind(this)
             });
-            this.scene.setupParticles();
+
+            this.particles = new ParticleEffects(this.scene);
             this.health = new HealthSystem(this.scene, {
                 onDeath: (entry) => this.onCharacterDeath(entry)
             });
@@ -62,8 +73,16 @@ class BusTestController {
             this.health.register({ player: this.goalkeeper, isGoalkeeper: true });
             this.health.update();
 
-            this.shootUsed = BusTestController.MAX_SHOT_COUNT;
-            this.ui.setShootCount(this.shootUsed);
+            this.isShotAbilityUsed = false;
+
+            this.shotUsed = BusTestController.MAX_SHOT_COUNT;
+            this.specialShotsLeft = {
+                boost: BusTestController.MAX_BOOST_SHOT,
+                bomb: BusTestController.MAX_BOMB_SHOT
+            };
+            this.ui.setActiveShotTypesPanel(true, this.specialShotsLeft);
+            this.ui.setShootCount(this.shotUsed);
+            this.ui.updateSpecialShotCount(this.specialShotsLeft);
 
             return true;
         } catch (error) {
@@ -80,8 +99,14 @@ class BusTestController {
         this.active = false;
         this.snapshot = null;
 
-        this.shootUsed = BusTestController.MAX_SHOT_COUNT;
-        this.ui.setShootCount(this.shootUsed);
+        this.shotUsed = BusTestController.MAX_SHOT_COUNT;
+        this.specialShotsLeft = {
+            boost: BusTestController.MAX_BOOST_SHOT,
+            bomb: BusTestController.MAX_BOMB_SHOT
+        };
+        this.ui.setShootCount(this.shotUsed);
+        this.ui.setActiveShotTypesPanel(true, this.specialShotsLeft);
+        this.ui.updateSpecialShotCount(this.specialShotsLeft);
 
         this.ui.setTestMode(false);
         this.scene.loadBus(key);
@@ -114,7 +139,7 @@ class BusTestController {
         this.settleTimer += delta;
 
         if (this.settleTimer >= 500) {
-            this.ball.reset();
+            this.resetBall();
             this.settleTimer = 0;
         }
     }
@@ -137,7 +162,40 @@ class BusTestController {
             body && !body.isStatic && !body.isSensor
         );
     }
-    explode(power = 0.3, radius = 300) {
+
+    onAbilityAction() {
+        if (!this.ball?.hasBeenShot || this.isShotAbilityUsed) return;
+
+        let used = false;
+
+        switch (this.currentShotType) {
+            case 'boost':
+                if (this.specialShotsLeft.boost <= 0) break;
+
+                used = this.ball.boost();
+                if (used) {
+                    this.particles.spawnBoostParticles(this.ball.sprite);
+
+                    this.specialShotsLeft.boost -= 1;
+                    this.isShotAbilityUsed = true;
+                }
+                break;
+
+            case 'bomb':
+                if (this.specialShotsLeft.bomb <= 0) break;
+
+                used = this.explode();
+                if (used) {
+                    this.ball.deactivate();
+                    this.specialShotsLeft.bomb -= 1;
+                    this.isShotAbilityUsed = true;
+                }
+                break;
+        }
+        this.ui.updateSpecialShotCount(this.specialShotsLeft);
+    }
+
+    explode(power = 0.3, radius = 320) {
         if (!this.ball?.hasBeenShot || power <= 0 || radius <= 0) {
             return false;
         }
@@ -169,15 +227,28 @@ class BusTestController {
             });
         }
 
+        this.particles.spawnExplosionParticles(center.x, center.y);
         // Новое движение отменяет накопленное ожидание остановки.
         this.settleTimer = 0;
 
         return true;
     }
 
+    resetBall() {
+        this.particles.stopBoostParticles();
+        this.ball.reset();
+        this.ui.setActiveShotTypesPanel(true, this.specialShotsLeft);
+        this.isShotAbilityUsed = false;
+    }
+
     onCharacterDeath(entry) {
         const sprite = entry.player.sprite;
-        this.scene.spawnHitParticles(sprite.x, sprite.y, 0xff0000, 100);
+        this.particles.spawnHitParticles(
+            sprite.x,
+            sprite.y,
+            0xff0000,
+            100
+        );
         if (entry.isGoalkeeper) {
             this.goalkeeper = null;
         } else {
@@ -186,10 +257,14 @@ class BusTestController {
     }
 
     onShotAction() {
-        this.shootUsed -= 1;
-        this.ui.setShootCount(this.shootUsed);
+        this.currentShotType = this.ui.getSelectedShotType();
+        this.ui.setActiveShotTypesPanel(false, this.specialShotsLeft);
+        this.isShotAbilityUsed = false;
 
-        if (this.shootUsed <= 0) {
+        this.shotUsed -= 1;
+        this.ui.setShootCount(this.shotUsed);
+
+        if (this.shotUsed <= 0) {
             this.ballControls.setGameFinished(true);
             return;
         }
@@ -200,7 +275,8 @@ class BusTestController {
         this.health = null;
         this.ballControls?.destroy();
         this.ballControls = null;
-        this.scene.clearTestSystems();
+        this.particles?.destroy();
+        this.particles = null;
         this.camera.stopFollow();
         if (this.camera.zoomTween) {
             this.camera.zoomTween.stop();

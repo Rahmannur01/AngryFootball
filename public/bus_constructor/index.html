@@ -17,6 +17,7 @@
     <script src="./BusManager.js"></script>
     <script src="./FootballGoal.js"></script>
     <script src="./Goalkeeper.js"></script>
+    <script src="./ParticleEffects.js"></script>
 </head>
 
 <body>
@@ -41,6 +42,25 @@
                 </button>
                 <button id="restart-test-btn" class="game-button" type="button" hidden>
                     ↻
+                </button>
+            </div>
+
+            <div id="shot-types-panel" hidden>
+                <button class="shot-type-btn selected" type="button" data-shot-type="normal" aria-label="Обычный удар"
+                    aria-pressed="true">
+                    <span class="shot-type-icon">⚽</span>
+                </button>
+
+                <button class="shot-type-btn" type="button" data-shot-type="boost" aria-label="Ускорение"
+                    aria-pressed="false">
+                    <span class="shot-type-icon">⚡</span>
+                    <span class="shot-type-count" id="boost-count">3</span>
+                </button>
+
+                <button class="shot-type-btn" type="button" data-shot-type="bomb" aria-label="Бомба"
+                    aria-pressed="false">
+                    <span class="shot-type-icon">💣</span>
+                    <span class="shot-type-count" id="bomb-count">3</span>
                 </button>
             </div>
 

@@ -1,6 +1,6 @@
 class FootballGoal {
     constructor(scene, {
-        x = 2300,
+        x = 2250,
         y = 790,
         texture = 'FootballGoal',
         scale = 0.25
