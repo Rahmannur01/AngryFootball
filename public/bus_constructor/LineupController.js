@@ -6,6 +6,7 @@ class LineupController {
         this.maxPlayers = maxPlayers;
         this.players = [];
         this.selectedSeat = null;
+        this.selectedPlayer = null;
     }
 
     get count() {
@@ -32,6 +33,8 @@ class LineupController {
             repeat: -1
         });
         this.selectedSeat = { buttonObj, cfg, baseAlpha, tween };
+
+        this.placePendingSelection();
     }
 
     clearSeatSelection() {
@@ -42,18 +45,38 @@ class LineupController {
         this.selectedSeat = null;
     }
 
-    placeSelectedPlayer(type, cardId) {
-        const seat = this.selectedSeat;
-        if (!this.canEdit() || !seat) {
+    selectPlayer(type, cardId) {
+        if (!this.canEdit() || this.count >= this.maxPlayers) {
             this.ui.clearSelection();
+            this.selectedPlayer = null;
             return false;
         }
-        const entry = this.placePlayer(seat.buttonObj, seat.cfg.name, type, cardId);
+
+        this.selectedPlayer = { type, cardId };
+        return this.placePendingSelection();
+    }
+
+    placePendingSelection() {
+        const seat = this.selectedSeat;
+        const selectedPlayer = this.selectedPlayer;
+
+        if (!seat || !selectedPlayer) return false;
+
+        const entry = this.placePlayer(
+            seat.buttonObj,
+            seat.cfg.name,
+            selectedPlayer.type,
+            selectedPlayer.cardId
+        );
+
         if (!entry) {
             this.ui.clearSelection();
+            this.selectedPlayer = null;
             return false;
         }
+
         this.clearSeatSelection();
+        this.selectedPlayer = null;
         return true;
     }
 
@@ -123,9 +146,47 @@ class LineupController {
         this.players.forEach(({ player }) => player.setTeamColor(color));
     }
 
+    randomize(objects, playerTypes) {
+        if (!this.canEdit()) return false;
+
+        this.clearPlayers();
+        this.ui.reloadPortraits();
+
+        const seats = Object.entries(objects || {})
+            .filter(([, obj]) => obj?.tag === 'add_player_button');
+        const cards = (playerTypes || [])
+            .map((type, cardId) => ({ type, cardId }));
+
+        Phaser.Utils.Array.Shuffle(seats);
+        Phaser.Utils.Array.Shuffle(cards);
+
+        const playerCount = Math.min(
+            seats.length,
+            cards.length,
+            this.maxPlayers
+        );
+
+        for (let i = 0; i < playerCount; i++) {
+            const [seatName, seatButton] = seats[i];
+            const { type, cardId } = cards[i];
+
+            this.placePlayer(seatButton, seatName, type, cardId);
+        }
+
+        return playerCount > 0;
+    }
+
     clearPlayers() {
         this.clearSeatSelection();
-        this.players.forEach(({ player }) => player.destroy());
+        this.selectedPlayer = null;
+        this.ui.clearSelection();
+        this.players.forEach(({ player, seatButton }) => {
+            if (seatButton?.scene) {
+                seatButton.setVisible(true);
+                seatButton.setInteractive();
+            }
+            player.destroy();
+        });
         this.players = [];
     }
 

@@ -67,7 +67,7 @@ class BusScene extends Phaser.Scene {
             maxPlayers: BusScene.MAX_PLAYERS_COUNT
         });
         this.busSceneUI.onCardSelected = (type, card, cardId) => {
-            this.lineup.placeSelectedPlayer(type, cardId);
+            this.lineup.selectPlayer(type, cardId);
         };
 
         this.busSceneUI.drawPortraits(
@@ -98,20 +98,14 @@ class BusScene extends Phaser.Scene {
             goal: this.footballGoal,
             requiredPlayers: BusScene.MAX_PLAYERS_COUNT
         });
+        this.busSceneUI.setActionHandlers({
+            onStartTest: () => this.startBusTest(),
+            onChangeBus: () => this.switchNextBus(),
+            onRandomLineup: () => this.randomizeLineup(),
+            onExitTest: () => this.exitBusTest(),
+            onRestartTest: () => this.restartBusTest()
+        });
         this.events.once('shutdown', this.shutdown, this);
-
-        document.getElementById('test-bus-btn').onclick = () => {
-            this.startBusTest();
-        };
-        document.getElementById('change-bus-btn').onclick = () => {
-            this.switchNextBus();
-        };
-        document.getElementById('exit-test-btn').onclick = () => {
-            this.exitBusTest();
-        };
-        document.getElementById('restart-test-btn').onclick = () => {
-            this.restartBusTest();
-        };
 
         this.busResizeHandler = () => {
             if (!this.busTest.active) this.focusCameraOnBus();
@@ -163,6 +157,14 @@ class BusScene extends Phaser.Scene {
         this.busManager.loadRandom();
         this.busSceneUI.reloadPortraits();
     }
+    randomizeLineup() {
+        if (this.busTest.active) return false;
+
+        return this.lineup.randomize(
+            this.busManager.getObjects(),
+            this.playerTypesList
+        );
+    }
     focusCameraOnBus() {
         const bus = this.busManager.getObjects()?.Karkas;
         if (!bus) return;
@@ -205,10 +207,6 @@ class BusScene extends Phaser.Scene {
     shutdown() {
         this.busTest?.destroy();
         this.scale.off('resize', this.busResizeHandler);
-        for (const id of ['test-bus-btn', 'change-bus-btn', 'exit-test-btn', 'restart-test-btn']) {
-            const button = document.getElementById(id);
-            if (button) button.onclick = null;
-        }
         this.footballGoal?.destroy();
         this.lineup?.destroy();
         if (this.busManager) {

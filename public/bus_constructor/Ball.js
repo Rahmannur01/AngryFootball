@@ -4,7 +4,7 @@ class Ball {
         y = 900,
         texture = 'Ball',
         scale = 0.65,
-        maxSpeed = 32,
+        maxSpeed = 38,
         stillThreshold = 0.05,
         stillDuration = 300
     } = {}) {

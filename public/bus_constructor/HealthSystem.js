@@ -1,47 +1,169 @@
-// Здоровье физических персонажей и отображение HP.
+const DESTRUCTIBLE_PROFILES = Object.freeze({
+    destructible_barrel: Object.freeze({
+        material: 'barrel',
+        maxHp: 1.7
+    }),
+    destructible_wood: Object.freeze({
+        material: 'wood',
+        maxHp: 2.5
+    }),
+    destructible_stone: Object.freeze({
+        material: 'stone',
+        maxHp: 3.5
+    })
+});
+
+// Здоровье всех физических целей и отображение HP персонажей.
 class HealthSystem {
-    constructor(scene, { onDeath = () => { } } = {}) {
+    static MIN_IMPACT_SPEED = 0.3;
+    static DAMAGE_PER_SPEED = 0.06;
+
+    constructor(scene, {
+        onDeath = () => { },
+        onDamage = () => { },
+        onDestructibleDestroyed = ({ object }) => object.destroy()
+    } = {}) {
         this.scene = scene;
         this.onDeath = onDeath;
+        this.onDamage = onDamage;
+        this.onDestructibleDestroyed = onDestructibleDestroyed;
         this.targets = new Map();
         this.collisionHandler = this.onCollision.bind(this);
         this.scene.matter.world.on('collisionstart', this.collisionHandler);
     }
 
-    register(entry, maxHp = 2) {
-        const body = entry.player.sprite.body;
-        if (this.targets.has(body)) return;
-        const bar = this.scene.add.graphics().setDepth(20);
-        this.targets.set(body, { entry, hp: maxHp, maxHp, bar });
+    getRootBody(body) {
+        return body?.parent || body;
     }
 
-    onCollision(event) {
-        event.pairs.forEach(({ bodyA, bodyB }) => {
-            const impactSpeed = Math.hypot(
-                bodyA.velocity.x - bodyB.velocity.x,
-                bodyA.velocity.y - bodyB.velocity.y
-            );
-            if (impactSpeed <= 0.3) return;
-            this.damage(bodyA.parent || bodyA, impactSpeed);
-            this.damage(bodyB.parent || bodyB, impactSpeed);
+    registerCharacter(entry, maxHp = 2) {
+        return this.registerTarget({
+            body: entry.player.sprite.body,
+            kind: 'character',
+            entry,
+            maxHp,
+            showHealthBar: true
         });
     }
 
-    damage(body, impactSpeed) {
-        const data = this.targets.get(body);
-        if (!data) return;
-        data.hp = Math.max(0, data.hp - impactSpeed * 0.06);
-        if (data.hp > 0) return;
+    registerDestructibles(objects) {
+        let registeredCount = 0;
 
-        // Удаляем запись до уведомления, чтобы гибель обрабатывалась один раз.
-        this.targets.delete(body);
-        data.bar.destroy();
-        this.onDeath(data.entry);
-        data.entry.player.destroy();
+        Object.entries(objects || {}).forEach(([name, object]) => {
+            const profile = DESTRUCTIBLE_PROFILES[object?.tag];
+            if (!profile || !object.body) return;
+
+            const registered = this.registerTarget({
+                body: object.body,
+                kind: 'destructible',
+                name,
+                object,
+                profile,
+                maxHp: profile.maxHp,
+                showHealthBar: false
+            });
+
+            if (registered) registeredCount += 1;
+        });
+
+        return registeredCount;
+    }
+
+    registerTarget({
+        body,
+        kind,
+        entry = null,
+        name = null,
+        object = null,
+        profile = null,
+        maxHp,
+        showHealthBar = false
+    }) {
+        const rootBody = this.getRootBody(body);
+        if (!rootBody || this.targets.has(rootBody) || maxHp <= 0) return false;
+
+        const bar = showHealthBar
+            ? this.scene.add.graphics().setDepth(20)
+            : null;
+
+        this.targets.set(rootBody, {
+            kind,
+            entry,
+            name,
+            object,
+            profile,
+            hp: maxHp,
+            maxHp,
+            bar
+        });
+
+        return true;
+    }
+
+    onCollision(event) {
+        const processedPairs = new Set();
+
+        event.pairs.forEach(({ bodyA, bodyB, collision }) => {
+            const rootBodyA = this.getRootBody(bodyA);
+            const rootBodyB = this.getRootBody(bodyB);
+            if (!rootBodyA || !rootBodyB || rootBodyA === rootBodyB) return;
+
+            // Составные Matter-тела могут создать несколько пар для одного удара.
+            const pairKey = rootBodyA.id < rootBodyB.id
+                ? `${rootBodyA.id}:${rootBodyB.id}`
+                : `${rootBodyB.id}:${rootBodyA.id}`;
+            if (processedPairs.has(pairKey)) return;
+            processedPairs.add(pairKey);
+
+            const impactSpeed = Math.hypot(
+                rootBodyA.velocity.x - rootBodyB.velocity.x,
+                rootBodyA.velocity.y - rootBodyB.velocity.y
+            );
+            if (impactSpeed <= HealthSystem.MIN_IMPACT_SPEED) return;
+
+            const impactPoint = collision?.supports?.[0] || null;
+            this.applyImpactDamage(rootBodyA, impactSpeed, impactPoint);
+            this.applyImpactDamage(rootBodyB, impactSpeed, impactPoint);
+        });
+    }
+
+    applyImpactDamage(body, impactSpeed, impactPoint = null) {
+        return this.applyDamage(
+            body,
+            impactSpeed * HealthSystem.DAMAGE_PER_SPEED,
+            impactPoint
+        );
+    }
+
+    applyDamage(body, amount, impactPoint = null) {
+        const rootBody = this.getRootBody(body);
+        const target = this.targets.get(rootBody);
+        if (!target || !Number.isFinite(amount) || amount <= 0) return false;
+
+        target.hp = Math.max(0, target.hp - amount);
+        if (target.hp > 0) {
+            this.onDamage(target, amount, impactPoint);
+            return true;
+        }
+
+        // Удаляем запись до callback, чтобы цель уничтожилась только один раз.
+        this.targets.delete(rootBody);
+        target.bar?.destroy();
+
+        if (target.kind === 'character') {
+            this.onDeath(target.entry);
+            target.entry.player.destroy();
+        } else {
+            this.onDestructibleDestroyed(target);
+        }
+
+        return true;
     }
 
     update() {
         this.targets.forEach(({ entry, hp, maxHp, bar }) => {
+            if (!bar || !entry) return;
+
             const bounds = entry.player.sprite.getBounds();
             const width = 40;
             const height = 6;
@@ -60,7 +182,7 @@ class HealthSystem {
 
     destroy() {
         this.scene.matter.world.off('collisionstart', this.collisionHandler);
-        this.targets.forEach(({ bar }) => bar.destroy());
+        this.targets.forEach(({ bar }) => bar?.destroy());
         this.targets.clear();
     }
 }

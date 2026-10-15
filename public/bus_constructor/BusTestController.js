@@ -66,11 +66,23 @@ class BusTestController {
 
             this.particles = new ParticleEffects(this.scene);
             this.health = new HealthSystem(this.scene, {
-                onDeath: (entry) => this.onCharacterDeath(entry)
+                onDeath: (entry) => this.onCharacterDeath(entry),
+                onDamage:
+                    (target, damage, point) =>
+                        this.onTargetDamaged(target, damage, point),
+                onDestructibleDestroyed:
+                    (target) => this.onDestructibleDestroyed(target)
             });
-            this.lineup.getPlayers().forEach(entry => this.health.register(entry));
+            this.lineup.getPlayers()
+                .forEach(entry => this.health.registerCharacter(entry));
             this.lineup.setPlayersSleepThreshold();
-            this.health.register({ player: this.goalkeeper, isGoalkeeper: true });
+            this.health.registerCharacter({
+                player: this.goalkeeper,
+                isGoalkeeper: true
+            });
+            this.health.registerDestructibles(
+                this.busManager.getObjects()
+            );
             this.health.update();
 
             this.isShotAbilityUsed = false;
@@ -237,7 +249,10 @@ class BusTestController {
     resetBall() {
         this.particles.stopBoostParticles();
         this.ball.reset();
-        this.ui.setActiveShotTypesPanel(true, this.specialShotsLeft);
+        this.ui.setActiveShotTypesPanel(
+            this.shotUsed > 0,
+            this.specialShotsLeft
+        );
         this.isShotAbilityUsed = false;
     }
 
@@ -256,15 +271,51 @@ class BusTestController {
         }
     }
 
+    onTargetDamaged(target, damage, impactPoint) {
+        if (target.kind !== 'destructible' || damage < 0.05) return;
+
+        const x = impactPoint?.x ?? target.object.x;
+        const y = impactPoint?.y ?? target.object.y;
+
+        this.particles.spawnMaterialImpact(
+            x,
+            y,
+            target.profile.material,
+            damage / target.maxHp
+        );
+    }
+
+    onDestructibleDestroyed({ name, object, profile }) {
+        this.particles.spawnMaterialDestruction(
+            object.x,
+            object.y,
+            profile.material
+        );
+        this.busManager.removeObject(name);
+        this.wakeBodiesAfterDestruction();
+        this.settleTimer = 0;
+    }
+
+    wakeBodiesAfterDestruction() {
+        const { Sleeping } = Phaser.Physics.Matter.Matter;
+
+        this.getAllDynamicBodies(true).forEach(body => {
+            Sleeping.set(body.parent || body, false);
+        });
+    }
+
     onShotAction() {
+        if (this.shotUsed <= 0) return;
+
         this.currentShotType = this.ui.getSelectedShotType();
         this.ui.setActiveShotTypesPanel(false, this.specialShotsLeft);
         this.isShotAbilityUsed = false;
 
-        this.shotUsed -= 1;
+        this.shotUsed = Math.max(0, this.shotUsed - 1);
         this.ui.setShootCount(this.shotUsed);
 
         if (this.shotUsed <= 0) {
+            this.ui.setActiveShotTypesPanel(false, this.specialShotsLeft);
             this.ballControls.setGameFinished(true);
             return;
         }

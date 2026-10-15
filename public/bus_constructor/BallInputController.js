@@ -1,7 +1,14 @@
 // Ввод и прицел. Физика и выполнение удара остаются в Ball.
 class BallInputController {
-    static MAX_DRAG = 150;
-    constructor(scene, ball, { onRelease = () => { }, onShot = () => {}, onAbilityAction = () => {} } = {}) {
+    static MAX_DRAG = 210;
+    static AIM_DOT_COUNT = 12;
+    static AIM_DOT_SPACING = 22;
+
+    constructor(scene, ball, {
+        onRelease = () => { },
+        onShot = () => { },
+        onAbilityAction = () => { }
+    } = {}) {
         this.input = scene.input;
         this.ball = ball;
         this.onRelease = onRelease;
@@ -86,7 +93,7 @@ class BallInputController {
                 this.onShot();
             }
 
-            this.aimGraphics.clear();
+            this.clearAim();
             this.startPoint = null;
             this.isAiming = false;
 
@@ -97,47 +104,66 @@ class BallInputController {
     }
 
     drawAimDots(angle, dragDistance) {
-        this.aimGraphics.clear();
+        this.clearAim();
 
         const ball = this.ball.sprite;
-        const dotCount = 20;
-        const spacing = 20;
-
         const power = Phaser.Math.Clamp(
             dragDistance / BallInputController.MAX_DRAG,
             0,
             1
         );
+        const ballRadius = Math.max(
+            ball.displayWidth,
+            ball.displayHeight
+        ) * 0.5;
 
-        this.aimGraphics.fillStyle(0xffffff, 0.5);
-        this.aimGraphics.fillCircle(ball.x, ball.y, 6);
+        this.drawPowerRing(ball.x, ball.y, ballRadius + 12, power);
 
-        for (let i = 1; i <= dotCount; i++) {
-            if (i > dotCount * power) break;
-
-            const distance = i * spacing;
+        const visibleDotCount = Math.ceil(
+            BallInputController.AIM_DOT_COUNT * power
+        );
+        for (let i = 1; i <= visibleDotCount; i++) {
+            const distance =
+                ballRadius +
+                16 +
+                (i - 1) * BallInputController.AIM_DOT_SPACING;
 
             const dotX = ball.x + Math.cos(angle) * distance;
             const dotY =
                 ball.y +
                 Math.sin(angle) * distance +
                 0.05 * i * i;
+            const progress = i / BallInputController.AIM_DOT_COUNT;
+            const alpha = Phaser.Math.Linear(0.8, 0.18, progress);
+            const radius = Phaser.Math.Linear(3.5, 1.5, progress);
 
-            const t = i / dotCount;
+            this.aimGraphics.fillStyle(0x000000, alpha * 0.32);
+            this.aimGraphics.fillCircle(dotX, dotY, radius + 1.5);
 
-            const color = Phaser.Display.Color.Interpolate.ColorWithColor(
-                new Phaser.Display.Color(0, 255, 0),
-                new Phaser.Display.Color(255, 0, 0),
-                1,
-                t
-            );
-
-            this.aimGraphics.fillStyle(color.color, 0.8);
-
-            const radius = Phaser.Math.Linear(5, 2, t);
-
+            this.aimGraphics.fillStyle(0xffffff, alpha);
             this.aimGraphics.fillCircle(dotX, dotY, radius);
         }
+    }
+
+    drawPowerRing(x, y, radius, power) {
+        const startAngle = -Math.PI / 2;
+        const endAngle = startAngle + Math.PI * 2 * power;
+
+        this.aimGraphics.lineStyle(2, 0x000000, 0.3);
+        this.aimGraphics.strokeCircle(x, y, radius);
+        this.aimGraphics.lineStyle(1, 0xffffff, 0.18);
+        this.aimGraphics.strokeCircle(x, y, radius);
+
+        if (power <= 0) return;
+
+        this.aimGraphics.lineStyle(2, 0xffffff, 0.68);
+        this.aimGraphics.beginPath();
+        this.aimGraphics.arc(x, y, radius, startAngle, endAngle);
+        this.aimGraphics.strokePath();
+    }
+
+    clearAim() {
+        this.aimGraphics?.clear();
     }
 
     setGameFinished(isFinished){

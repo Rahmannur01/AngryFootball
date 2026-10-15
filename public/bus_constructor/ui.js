@@ -5,6 +5,12 @@ class BusSceneUI {
 
         this.portraitElements = document.getElementsByClassName('player-photo');
         this.portraitElementsParent = document.getElementsByClassName('player-card');
+        this.playersPanel = document.getElementById('players-panel');
+        this.testBusButton = document.getElementById('test-bus-btn');
+        this.changeBusButton = document.getElementById('change-bus-btn');
+        this.randomLineupButton = document.getElementById('random-lineup-btn');
+        this.exitTestButton = document.getElementById('exit-test-btn');
+        this.restartTestButton = document.getElementById('restart-test-btn');
         this.shootUsedElement = document.getElementById('shots-counter');
         this.shootUsedCounterElement = document.getElementById('shots-count');
 
@@ -13,6 +19,7 @@ class BusSceneUI {
 
         // Вызывается при клике на карточку: (type, card)
         this.onCardSelected = null;
+        this.actionHandlers = {};
 
         this.shotTypesPanel = document.getElementById('shot-types-panel');
         this.shotTypeButtons = this.shotTypesPanel.querySelectorAll('.shot-type-btn');
@@ -27,7 +34,17 @@ class BusSceneUI {
             };
         });
 
+        this.testBusButton.onclick = () => this.actionHandlers.onStartTest?.();
+        this.changeBusButton.onclick = () => this.actionHandlers.onChangeBus?.();
+        this.randomLineupButton.onclick = () => this.actionHandlers.onRandomLineup?.();
+        this.exitTestButton.onclick = () => this.actionHandlers.onExitTest?.();
+        this.restartTestButton.onclick = () => this.actionHandlers.onRestartTest?.();
+
         this.selectShotType('normal');
+    }
+
+    setActionHandlers(handlers) {
+        this.actionHandlers = { ...handlers };
     }
 
 
@@ -115,17 +132,19 @@ class BusSceneUI {
     }
 
     setTestMode(active) {
-        document.getElementById('players-panel').style.display = active ? 'none' : '';
-        document.getElementById('test-bus-btn').hidden = active;
-        document.getElementById('change-bus-btn').hidden = active;
-        document.getElementById('exit-test-btn').hidden = !active;
-        document.getElementById('restart-test-btn').hidden = !active;
+        this.playersPanel.style.display = active ? 'none' : '';
+        this.testBusButton.hidden = active;
+        this.changeBusButton.hidden = active;
+        this.randomLineupButton.hidden = active;
+        this.exitTestButton.hidden = !active;
+        this.restartTestButton.hidden = !active;
         this.shootUsedElement.hidden = !active;
         this.shotTypesPanel.hidden = !active;
     }
 
     setActiveShotTypesPanel(active, specialShotsLeft) {
         this.shotTypesPanel.classList.toggle('locked', !active);
+        this.shotTypesPanel.setAttribute('aria-disabled', String(!active));
 
         this.shotTypeButtons.forEach(button => {
             const type = button.dataset.shotType;
@@ -183,7 +202,17 @@ class BusSceneUI {
         this.shotTypeButtons.forEach(button => {
             button.onclick = null;
         });
+        for (const button of [
+            this.testBusButton,
+            this.changeBusButton,
+            this.randomLineupButton,
+            this.exitTestButton,
+            this.restartTestButton
+        ]) {
+            button.onclick = null;
+        }
         this.onCardSelected = null;
+        this.actionHandlers = {};
     }
 
     getSelectedPlayerType() {

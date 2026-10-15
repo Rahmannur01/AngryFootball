@@ -364,12 +364,22 @@ body {
     position: static;
 }
 
-#change-bus-btn {
+#top-center-buttons {
     position: absolute;
     top: 12px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 30;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#change-bus-btn,
+#random-lineup-btn {
+    position: static;
+    white-space: nowrap;
 }
 
 .game-button--test {

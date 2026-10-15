@@ -86,6 +86,16 @@ class BusManager {
         return this.currentObjects;
     }
 
+    removeObject(name) {
+        const object = this.currentObjects?.[name];
+        if (!object) return false;
+
+        delete this.currentObjects[name];
+        if (this.scene[name] === object) this.scene[name] = null;
+        object.destroy();
+        return true;
+    }
+
     destroy() {
         this.destroyCurrent();
     }
