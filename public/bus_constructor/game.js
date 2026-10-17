@@ -36,28 +36,35 @@ class BusScene extends Phaser.Scene {
         this.load.image('FootballGoal', './assets/FootballGoal.png');
         this.load.image('Goalkeeper', './assets/Goalkeeper.png');
 
-        Object.entries(
-            window.PLAYER_TYPES
-        ).forEach(([key, data]) => {
+        const ragdoll = window.PLAYER_RAGDOLL;
+        if (!ragdoll?.common || !ragdoll?.players) {
+            throw new Error('Player ragdoll configuration is missing');
+        }
 
-            this.load.image(
-                key,
-                data.Player_img
-            );
+        Object.values(ragdoll.common.textures).forEach(({ key, file }) => {
+            this.load.image(key, file);
+        });
 
+        Object.values(ragdoll.players).forEach(({ body }) => {
+            this.load.image(body.textureKey, body.textureFile);
         });
     }
 
     create() {
+        this.game.renderer.pipelines.addPostPipeline(
+            'UniformPipeline',
+            UniformPipeline
+        );
+
         this.busSceneUI = new BusSceneUI();
 
         Object.values(
-            window.PLAYER_TYPES
+            window.PLAYER_RAGDOLL.players
         ).forEach((data) => {
 
             this.busSceneUI.addPortrait(
                 data.type,
-                data.Player_portret
+                data.portraitFile
             );
 
         });
@@ -177,6 +184,10 @@ class BusScene extends Phaser.Scene {
 
     setTeamColor(color) {
         this.lineup.setTeamColor(color);
+    }
+
+    setPlayerShaderEnabled(enabled) {
+        this.lineup.setShaderEnabled(enabled);
     }
 
     getCameraZoomMultiplier() {

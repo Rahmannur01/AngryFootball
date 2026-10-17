@@ -162,7 +162,7 @@ class BusTestController {
         ).map(obj => obj.body);
 
         const playerBodies = isPlayersIn
-            ? this.lineup.getPlayers().map(entry => entry.player.sprite.body)
+            ? this.lineup.getPlayers().flatMap(entry => entry.player.getBodies())
             : [];
 
         return [
@@ -262,7 +262,7 @@ class BusTestController {
             sprite.x,
             sprite.y,
             0xff0000,
-            100
+            40
         );
         if (entry.isGoalkeeper) {
             this.goalkeeper = null;

@@ -37,8 +37,10 @@ class HealthSystem {
     }
 
     registerCharacter(entry, maxHp = 2) {
+        const bodies = entry.player.getBodies?.() || [entry.player.sprite.body];
+
         return this.registerTarget({
-            body: entry.player.sprite.body,
+            bodies,
             kind: 'character',
             entry,
             maxHp,
@@ -70,7 +72,8 @@ class HealthSystem {
     }
 
     registerTarget({
-        body,
+        body = null,
+        bodies = null,
         kind,
         entry = null,
         name = null,
@@ -79,14 +82,20 @@ class HealthSystem {
         maxHp,
         showHealthBar = false
     }) {
-        const rootBody = this.getRootBody(body);
-        if (!rootBody || this.targets.has(rootBody) || maxHp <= 0) return false;
+        const rootBodies = [...new Set((bodies || [body])
+            .map(item => this.getRootBody(item))
+            .filter(Boolean))];
+        if (rootBodies.length === 0 ||
+            rootBodies.some(item => this.targets.has(item)) ||
+            maxHp <= 0) {
+            return false;
+        }
 
         const bar = showHealthBar
             ? this.scene.add.graphics().setDepth(20)
             : null;
 
-        this.targets.set(rootBody, {
+        const target = {
             kind,
             entry,
             name,
@@ -94,14 +103,23 @@ class HealthSystem {
             profile,
             hp: maxHp,
             maxHp,
-            bar
-        });
+            bar,
+            bodies: new Set(rootBodies)
+        };
+
+        rootBodies.forEach(rootBody => this.targets.set(rootBody, target));
 
         return true;
     }
 
+    unregisterTarget(target) {
+        target.bodies.forEach(body => this.targets.delete(body));
+        target.bar?.destroy();
+    }
+
     onCollision(event) {
         const processedPairs = new Set();
+        const strongestImpacts = new Map();
 
         event.pairs.forEach(({ bodyA, bodyB, collision }) => {
             const rootBodyA = this.getRootBody(bodyA);
@@ -122,8 +140,17 @@ class HealthSystem {
             if (impactSpeed <= HealthSystem.MIN_IMPACT_SPEED) return;
 
             const impactPoint = collision?.supports?.[0] || null;
-            this.applyImpactDamage(rootBodyA, impactSpeed, impactPoint);
-            this.applyImpactDamage(rootBodyB, impactSpeed, impactPoint);
+            [rootBodyA, rootBodyB].forEach(body => {
+                const target = this.targets.get(body);
+                const previous = strongestImpacts.get(target);
+                if (!target || previous?.impactSpeed >= impactSpeed) return;
+
+                strongestImpacts.set(target, { body, impactSpeed, impactPoint });
+            });
+        });
+
+        strongestImpacts.forEach(({ body, impactSpeed, impactPoint }) => {
+            this.applyImpactDamage(body, impactSpeed, impactPoint);
         });
     }
 
@@ -146,9 +173,8 @@ class HealthSystem {
             return true;
         }
 
-        // Удаляем запись до callback, чтобы цель уничтожилась только один раз.
-        this.targets.delete(rootBody);
-        target.bar?.destroy();
+        // Удаляем все части цели до callback, чтобы она уничтожилась один раз.
+        this.unregisterTarget(target);
 
         if (target.kind === 'character') {
             this.onDeath(target.entry);
@@ -161,10 +187,11 @@ class HealthSystem {
     }
 
     update() {
-        this.targets.forEach(({ entry, hp, maxHp, bar }) => {
+        new Set(this.targets.values()).forEach(({ entry, hp, maxHp, bar }) => {
             if (!bar || !entry) return;
 
-            const bounds = entry.player.sprite.getBounds();
+            const bounds = entry.player.getBounds?.() ||
+                entry.player.sprite.getBounds();
             const width = 40;
             const height = 6;
             const x = bounds.centerX - width / 2;
@@ -182,7 +209,7 @@ class HealthSystem {
 
     destroy() {
         this.scene.matter.world.off('collisionstart', this.collisionHandler);
-        this.targets.forEach(({ bar }) => bar?.destroy());
+        new Set(this.targets.values()).forEach(({ bar }) => bar?.destroy());
         this.targets.clear();
     }
 }

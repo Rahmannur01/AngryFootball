@@ -204,8 +204,8 @@ class ParticleEffects {
     }
 
     spawnExplosionParticles(x, y) {
-        this.explosionEmitter.explode(25, x, y);
-        this.explosionSparksEmitter.explode(45, x, y);
+        this.explosionEmitter.explode(18, x, y);
+        this.explosionSparksEmitter.explode(30, x, y);
     }
 
     spawnHitParticles(x, y, color = 0xffffff, count = 10) {

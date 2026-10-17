@@ -47,12 +47,12 @@ window.startBusGame = function () {
     if (startPromise) return startPromise;
 
     startPromise = (async () => {
-        const [scenesData, playerTypes] = await Promise.all([
+        const [scenesData, playerRagdoll] = await Promise.all([
             fetchJSON('./scenes_data.json'),
-            fetchJSON('./Player_types.json')
+            fetchJSON('./Player_ragdoll.json')
         ]);
         window.SCENES_DATA = scenesData;
-        window.PLAYER_TYPES = playerTypes;
+        window.PLAYER_RAGDOLL = playerRagdoll;
 
         await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
@@ -67,9 +67,6 @@ window.startBusGame = function () {
 
             try {
                 window.game = new Phaser.Game(createGameConfig());
-                window.game.renderer.pipelines.addPostPipeline(
-                    'UniformPipeline', UniformPipeline
-                );
             } catch (error) {
                 clearTimeout(timeout);
                 window.removeEventListener('busgame:ready', onReady);

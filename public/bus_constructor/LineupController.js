@@ -96,8 +96,10 @@ class LineupController {
         this.players.push(entry);
         seatButton.setVisible(false);
         seatButton.disableInteractive();
-        player.sprite.setInteractive();
-        player.sprite.on('pointerdown', () => this.returnPlayer(entry));
+        player.getSprites().forEach(sprite => {
+            sprite.setInteractive();
+            sprite.on('pointerdown', () => this.returnPlayer(entry));
+        });
         this.ui.markCardUsed(cardId);
         return entry;
     }
@@ -131,19 +133,23 @@ class LineupController {
         }
     }
 
-    setPlayersSleepThreshold(val = 0) {
+    setPlayersSleepThreshold(val = 60) {
         const Sleeping = Phaser.Physics.Matter.Matter.Sleeping;
 
         this.players.forEach(({ player }) => {
-            const body = player.sprite.body;
-
-            body.sleepThreshold = val;
-            Sleeping.set(body, false);
+            player.getBodies().forEach(body => {
+                body.sleepThreshold = val;
+                Sleeping.set(body, false);
+            });
         });
     }
 
     setTeamColor(color) {
         this.players.forEach(({ player }) => player.setTeamColor(color));
+    }
+
+    setShaderEnabled(enabled) {
+        this.players.forEach(({ player }) => player.setShaderEnabled(enabled));
     }
 
     randomize(objects, playerTypes) {
