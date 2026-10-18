@@ -1,6 +1,6 @@
 // Жизненный цикл теста. Эффекты пока подключаются через сцену.
 class BusTestController {
-    static MAX_SHOT_COUNT = 10;
+    static MAX_SHOT_COUNT = 3;
     static MAX_BOMB_SHOT = 3;
     static MAX_BOOST_SHOT = 3;
 
@@ -249,11 +249,17 @@ class BusTestController {
     resetBall() {
         this.particles.stopBoostParticles();
         this.ball.reset();
+        this.isShotAbilityUsed = false;
+
+        if (this.shotUsed <= 0) {
+            this.finishShotAttempts();
+            return;
+        }
+
         this.ui.setActiveShotTypesPanel(
-            this.shotUsed > 0,
+            true,
             this.specialShotsLeft
         );
-        this.isShotAbilityUsed = false;
     }
 
     onCharacterDeath(entry) {
@@ -315,11 +321,6 @@ class BusTestController {
 
         this.shotUsed = Math.max(0, this.shotUsed - 1);
         this.ui.setShootCount(this.shotUsed);
-
-        if (this.shotUsed <= 0) {
-            this.finishShotAttempts();
-            return;
-        }
     }
 
     finishShotAttempts() {
