@@ -1,7 +1,7 @@
 class FootballGoal {
     constructor(scene, {
         x = 2250,
-        y = 790,
+        y = 800,
         texture = 'FootballGoal',
         scale = 0.25
     } = {}) {
@@ -9,12 +9,21 @@ class FootballGoal {
 
         // Matter places a fromVerts body around the polygon's center of mass.
         // Compensate for it so the collider stays aligned with the source image.
+        const textureWidth = 794;
         const textureHeight = 963;
-        const colliderCenterY = 439.94;
-        this.bodyOffsetY = (colliderCenterY - textureHeight / 2) * scale;
+        const colliderCenterX = 463.815976;
+        const colliderCenterY = 432.779756;
+        const colliderShiftLeft = 40;
+        const colliderLiftY = 45;
+        this.bodyOffsetX = (
+            colliderCenterX - colliderShiftLeft - textureWidth * 0.62
+        ) * scale;
+        this.bodyOffsetY = (
+            colliderCenterY - colliderLiftY - textureHeight / 2
+        ) * scale;
 
         this.sprite = scene.matter.add.image(
-            x,
+            x + this.bodyOffsetX,
             y + this.bodyOffsetY,
             texture,
             null,
@@ -33,15 +42,12 @@ class FootballGoal {
                 shape: {
                     type: 'fromVerts',
                     verts: [
-                        { x: 145, y: 4 },
-                        { x: 166, y: 12 },
-                        { x: 428, y: 244 },
-                        { x: 544, y: 480 },
-                        { x: 735, y: 901 },
-                        { x: 681, y: 891 },
-                        { x: 416, y: 286 },
-                        { x: 397, y: 271 },
-                        { x: 159, y: 62 }
+                        { x: 93.75, y: 15 },
+                        { x: 160, y: 13.75 },
+                        { x: 432.5, y: 247.5 },
+                        { x: 741.25, y: 920 },
+                        { x: 695, y: 920 },
+                        { x: 406.25, y: 276.25 }
                     ]
                 },
 
@@ -56,19 +62,25 @@ class FootballGoal {
         this.sprite
             .setName('FootballGoal')
             .setAlpha(1)
-            .setDepth(15)
+            .setDepth(10)
             .setScale(scale)
             .setAngle(0)
             .setVisible(true)
             .setBlendMode(0)
             .setScrollFactor(1, 1)
-            .setOrigin(0.62, colliderCenterY / textureHeight)
+            .setOrigin(
+                (colliderCenterX - colliderShiftLeft) / textureWidth,
+                (colliderCenterY - colliderLiftY) / textureHeight
+            )
             .setFlipX(false)
             .setFlipY(false);
     }
 
     setPosition(x, y) {
-        this.sprite.setPosition(x, y + this.bodyOffsetY);
+        this.sprite.setPosition(
+            x + this.bodyOffsetX,
+            y + this.bodyOffsetY
+        );
         return this;
     }
 

@@ -34,10 +34,9 @@ class BusScene extends Phaser.Scene {
         );
         this.load.image('Ball', './assets/SoccerBall.png');
         this.load.image('FootballGoal', './assets/FootballGoal.png');
-        this.load.image('Goalkeeper', './assets/Goalkeeper.png');
 
         const ragdoll = window.PLAYER_RAGDOLL;
-        if (!ragdoll?.common || !ragdoll?.players) {
+        if (!ragdoll?.common || !ragdoll?.players || !ragdoll?.goalkeeper) {
             throw new Error('Player ragdoll configuration is missing');
         }
 
@@ -47,6 +46,11 @@ class BusScene extends Phaser.Scene {
 
         Object.values(ragdoll.players).forEach(({ body }) => {
             this.load.image(body.textureKey, body.textureFile);
+        });
+
+        ['body', 'leftArm', 'rightArm'].forEach((part) => {
+            const { textureKey, textureFile } = ragdoll.goalkeeper[part];
+            this.load.image(textureKey, textureFile);
         });
     }
 
@@ -96,7 +100,6 @@ class BusScene extends Phaser.Scene {
             this.initialBusKey
         );
         this.footballGoal = new FootballGoal(this);
-        this.footballGoal.sprite.setDepth(10);
         this.busTest = new BusTestController(this, {
             lineup: this.lineup,
             busManager: this.busManager,

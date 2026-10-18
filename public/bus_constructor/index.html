@@ -119,9 +119,11 @@
                 Angry Football
             </h1>
 
-            <button id="play-btn" class="play-btn">
-                Играть
-            </button>
+            <div class="menu-actions">
+                <button id="play-btn" class="play-btn" type="button">
+                    Играть
+                </button>
+            </div>
 
         </div>
 
@@ -129,15 +131,17 @@
 
 
     <!-- PHONE ROTATION -->
-    <div id="rotate-overlay">
+    <div id="rotate-overlay" role="dialog" aria-modal="true" aria-labelledby="rotate-message">
 
-        <div class="rotate-icon">
-            📱
+        <div class="rotate-card">
+            <div class="rotate-icon" aria-hidden="true">
+                📱
+            </div>
+
+            <p id="rotate-message">
+                Поверните телефон горизонтально
+            </p>
         </div>
-
-        <p>
-            Поверните телефон горизонтально
-        </p>
 
     </div>
     <script src="./LineupController.js"></script>

@@ -179,15 +179,19 @@ body {
 
 #menu-overlay {
     position: fixed;
-
     inset: 0;
-
     z-index: 1000;
-
     display: flex;
-
     align-items: center;
     justify-content: center;
+
+    box-sizing: border-box;
+    padding:
+        max(16px, env(safe-area-inset-top))
+        max(16px, env(safe-area-inset-right))
+        max(16px, env(safe-area-inset-bottom))
+        max(16px, env(safe-area-inset-left));
+    overflow: auto;
 
     background:
         radial-gradient(circle at 50% 30%,
@@ -199,14 +203,13 @@ body {
 
 .menu-card {
     display: flex;
-
     flex-direction: column;
-
     align-items: center;
 
-    gap: 30px;
-
-    padding: 24px;
+    width: min(100%, 720px);
+    gap: clamp(18px, 5vmin, 40px);
+    padding: clamp(16px, 4vmin, 40px);
+    box-sizing: border-box;
 
     text-align: center;
 }
@@ -216,7 +219,9 @@ body {
     margin: 0;
 
     font-size:
-        clamp(36px, 7vw, 72px);
+        clamp(36px, 9vmin, 88px);
+
+    line-height: 0.95;
 
     font-weight: 800;
 
@@ -230,14 +235,23 @@ body {
         0 0 24px rgba(255, 163, 72, 0.5);
 }
 
+.menu-actions {
+    display: grid;
+    width: min(100%, clamp(220px, 45vmin, 360px));
+    gap: clamp(10px, 2vmin, 16px);
+}
 
 .play-btn {
     appearance: none;
 
+    width: 100%;
+    min-height: clamp(54px, 10vmin, 76px);
+
     border: none;
 
     padding:
-        18px 60px;
+        clamp(12px, 2.5vmin, 20px)
+        clamp(24px, 6vmin, 64px);
 
     border-radius: 999px;
 
@@ -245,12 +259,19 @@ body {
 
     color: #12151c;
 
+    font-family: inherit;
+
     font-size:
-        clamp(18px, 3vw, 24px);
+        clamp(18px, 3.2vmin, 26px);
+
+    line-height: 1.1;
 
     font-weight: 700;
 
     cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 
     box-shadow:
         0 8px 24px rgba(255, 163, 72, 0.35);
@@ -272,6 +293,57 @@ body {
         scale(0.96);
 }
 
+.play-btn:focus-visible {
+    outline: 3px solid #ffffff;
+    outline-offset: 5px;
+}
+
+.play-btn:disabled {
+    opacity: 0.68;
+    cursor: wait;
+    transform: none;
+}
+
+@media (orientation: portrait) {
+    .menu-card {
+        gap: clamp(24px, 7vh, 48px);
+    }
+
+    .menu-title {
+        font-size: clamp(40px, 13vw, 78px);
+    }
+
+    .menu-actions {
+        width: min(82vw, 360px);
+    }
+
+    .play-btn {
+        min-height: clamp(56px, 8vh, 72px);
+        font-size: clamp(20px, 5vw, 26px);
+    }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+    .menu-card {
+        gap: clamp(12px, 5vh, 26px);
+        padding-block: clamp(8px, 3vh, 20px);
+    }
+
+    .menu-title {
+        font-size: clamp(32px, 12vh, 72px);
+    }
+
+    .menu-actions {
+        width: min(42vw, 340px);
+    }
+
+    .play-btn {
+        min-height: clamp(48px, 13vh, 66px);
+        padding-block: clamp(10px, 3vh, 16px);
+        font-size: clamp(17px, 5vh, 24px);
+    }
+}
+
 
 /* =========================================================
    ROTATE PHONE
@@ -279,34 +351,52 @@ body {
 
 #rotate-overlay {
     display: none;
-
     position: fixed;
-
     inset: 0;
-
     z-index: 1100;
-
-    flex-direction: column;
-
     align-items: center;
     justify-content: center;
 
-    text-align: center;
-
-    padding: 24px;
-
+    padding:
+        max(20px, env(safe-area-inset-top))
+        max(20px, env(safe-area-inset-right))
+        max(20px, env(safe-area-inset-bottom))
+        max(20px, env(safe-area-inset-left));
     box-sizing: border-box;
 
-    background: #12151c;
-
+    background:
+        radial-gradient(circle at 50% 38%,
+            rgba(255, 163, 72, 0.2),
+            transparent 58%),
+        #12151c;
     color: white;
 }
 
+.rotate-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    width: min(100%, 720px);
+    padding: clamp(28px, 8vmin, 68px);
+    box-sizing: border-box;
+
+    border: 2px solid rgba(255, 163, 72, 0.34);
+    border-radius: clamp(24px, 6vmin, 48px);
+    background: rgba(20, 23, 31, 0.88);
+    box-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.38),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+    text-align: center;
+}
 
 .rotate-icon {
-    font-size: 48px;
+    margin-bottom: clamp(24px, 7vmin, 52px);
 
-    margin-bottom: 16px;
+    font-size: clamp(100px, 28vmin, 180px);
+    line-height: 1;
 
     animation:
         rotate-phone 1.5s ease-in-out infinite;
@@ -316,9 +406,16 @@ body {
 #rotate-overlay p {
     margin: 0;
 
-    font-size: 18px;
+    max-width: 15ch;
+
+    font-size: clamp(26px, 7vmin, 52px);
+    line-height: 1.15;
+    font-weight: 800;
+    letter-spacing: 0.01em;
 
     color: #ffa348;
+
+    text-wrap: balance;
 }
 
 .game-button {

@@ -47,9 +47,9 @@ class BusTestController {
 
             this.ball = new Ball(this.scene, { x: 350, y: 900 });
             this.goalkeeper = new Goalkeeper(this.scene, {
-                x: this.goal.sprite.x - 170,
-                y: 830,
-                scale: 0.2,
+                x: this.goal.sprite.x - 150,
+                y: 846,
+                scale: 0.17,
                 teamColor: 0xb066de
             });
 
@@ -164,12 +164,15 @@ class BusTestController {
         const playerBodies = isPlayersIn
             ? this.lineup.getPlayers().flatMap(entry => entry.player.getBodies())
             : [];
+        const goalkeeperBodies = isPlayersIn
+            ? this.goalkeeper?.getBodies?.() || []
+            : [];
 
         return [
             ...busBodies,
             ...playerBodies,
+            ...goalkeeperBodies,
             this.ball?.sprite.body,
-            ...(isPlayersIn ? [this.goalkeeper?.sprite.body] : [])
         ].filter(body =>
             body && !body.isStatic && !body.isSensor
         );
@@ -177,34 +180,31 @@ class BusTestController {
 
     onAbilityAction() {
         if (!this.ball?.hasBeenShot || this.isShotAbilityUsed) return;
+        if (this.currentShotType !== 'bomb' ||
+            this.specialShotsLeft.bomb <= 0) return;
 
-        let used = false;
-
-        switch (this.currentShotType) {
-            case 'boost':
-                if (this.specialShotsLeft.boost <= 0) break;
-
-                used = this.ball.boost();
-                if (used) {
-                    this.particles.spawnBoostParticles(this.ball.sprite);
-
-                    this.specialShotsLeft.boost -= 1;
-                    this.isShotAbilityUsed = true;
-                }
-                break;
-
-            case 'bomb':
-                if (this.specialShotsLeft.bomb <= 0) break;
-
-                used = this.explode();
-                if (used) {
-                    this.ball.deactivate();
-                    this.specialShotsLeft.bomb -= 1;
-                    this.isShotAbilityUsed = true;
-                }
-                break;
+        const used = this.explode();
+        if (used) {
+            this.ball.deactivate();
+            this.specialShotsLeft.bomb -= 1;
+            this.isShotAbilityUsed = true;
         }
         this.ui.updateSpecialShotCount(this.specialShotsLeft);
+    }
+
+    activateBoost() {
+        if (this.currentShotType !== 'boost' ||
+            this.specialShotsLeft.boost <= 0) return false;
+
+        const used = this.ball.boost();
+        if (!used) return false;
+
+        this.particles.spawnBoostParticles(this.ball.sprite);
+        this.specialShotsLeft.boost -= 1;
+        this.isShotAbilityUsed = true;
+        this.ui.updateSpecialShotCount(this.specialShotsLeft);
+
+        return true;
     }
 
     explode(power = 0.37, radius = 300) {
@@ -311,14 +311,28 @@ class BusTestController {
         this.ui.setActiveShotTypesPanel(false, this.specialShotsLeft);
         this.isShotAbilityUsed = false;
 
+        this.activateBoost();
+
         this.shotUsed = Math.max(0, this.shotUsed - 1);
         this.ui.setShootCount(this.shotUsed);
 
         if (this.shotUsed <= 0) {
-            this.ui.setActiveShotTypesPanel(false, this.specialShotsLeft);
-            this.ballControls.setGameFinished(true);
+            this.finishShotAttempts();
             return;
         }
+    }
+
+    finishShotAttempts() {
+        this.shotUsed = 0;
+        this.specialShotsLeft = {
+            boost: 0,
+            bomb: 0
+        };
+
+        this.ui.setShootCount(this.shotUsed);
+        this.ui.updateSpecialShotCount(this.specialShotsLeft);
+        this.ui.setActiveShotTypesPanel(false, this.specialShotsLeft);
+        this.ballControls?.setGameFinished(true);
     }
 
     clearResources() {

@@ -69,7 +69,7 @@ class Ball {
 
         return true;
     }
-    boost(multiplier = 1.8) {
+    boost(multiplier = 1.4) {
         if (!this.hasBeenShot || this.hasBeenBoosted) {
             return false;
         }

@@ -10,11 +10,11 @@
     "textures": {
       "leftArm": {
         "key": "Left_arm",
-        "file": "./assets/ragdoll/Left_arm.png"
+        "file": "./assets/ragdoll/Left_arm.webp"
       },
       "rightArm": {
         "key": "Right_arm",
-        "file": "./assets/ragdoll/Right_arm.png"
+        "file": "./assets/ragdoll/Right_arm.webp"
       }
     },
     "colliders": {
@@ -35,6 +35,56 @@
       "damping": 0.15
     }
   },
+  "goalkeeper": {
+    "name": "GoalKeeper",
+    "body": {
+      "textureKey": "GoalKeeper_body",
+      "textureFile": "./assets/ragdoll/GoalKeeper_body.webp",
+      "scale": {
+        "x": 0.17,
+        "y": 0.17
+      },
+      "vertices": [
+        { "x": 164.0625, "y": 12.5 },
+        { "x": 287.5, "y": 101.5625 },
+        { "x": 265.625, "y": 250 },
+        { "x": 335.9375, "y": 1039 },
+        { "x": 17.1875, "y": 1039 },
+        { "x": 107.8125, "y": 898.4375 },
+        { "x": 60.9375, "y": 95.3125 }
+      ]
+    },
+    "leftArm": {
+      "textureKey": "GoalKeeper_left_arm",
+      "textureFile": "./assets/ragdoll/GoalKeeper_left_arm.webp",
+      "centerOffset": { "x": 13, "y": -6 },
+      "scale": { "x": 0.125, "y": 0.135 },
+      "angle": 0,
+      "bodyAnchor": { "x": 13, "y": -36.91 },
+      "armAnchor": { "x": 0, "y": -30.91 },
+      "depthOffset": 0,
+      "collider": {
+        "type": "rectangle",
+        "width": 80,
+        "height": 500
+      }
+    },
+    "rightArm": {
+      "textureKey": "GoalKeeper_right_arm",
+      "textureFile": "./assets/ragdoll/GoalKeeper_right_arm.webp",
+      "centerOffset": { "x": -11, "y": -6 },
+      "scale": { "x": 0.125, "y": 0.135 },
+      "angle": 10,
+      "bodyAnchor": { "x": -5.643, "y": -36.386 },
+      "armAnchor": { "x": 0, "y": -30.855 },
+      "depthOffset": -1,
+      "collider": {
+        "type": "rectangle",
+        "width": 100,
+        "height": 500
+      }
+    }
+  },
   "players": {
     "Player_1": {
       "name": "Player_1",
@@ -42,7 +92,7 @@
       "portraitFile": "./assets/Player_1_portret.png",
       "body": {
         "textureKey": "Player_body_1",
-        "textureFile": "./assets/ragdoll/Player_body_1.png",
+        "textureFile": "./assets/ragdoll/Player_body_1.webp",
         "scale": {
           "x": 0.2,
           "y": 0.2
@@ -88,7 +138,7 @@
       "portraitFile": "./assets/Player_2_portret.png",
       "body": {
         "textureKey": "Player_body_2",
-        "textureFile": "./assets/ragdoll/Player_body_2.png",
+        "textureFile": "./assets/ragdoll/Player_body_2.webp",
         "scale": {
           "x": 0.2,
           "y": 0.2
@@ -133,7 +183,7 @@
       "portraitFile": "./assets/Player_3_portret.png",
       "body": {
         "textureKey": "Player_body_3",
-        "textureFile": "./assets/ragdoll/Player_body_3.png",
+        "textureFile": "./assets/ragdoll/Player_body_3.webp",
         "scale": {
           "x": 0.2,
           "y": 0.2
@@ -178,7 +228,7 @@
       "portraitFile": "./assets/Player_4_portret.png",
       "body": {
         "textureKey": "Player_body_4",
-        "textureFile": "./assets/ragdoll/Player_body_4.png",
+        "textureFile": "./assets/ragdoll/Player_body_4.webp",
         "scale": {
           "x": 0.2,
           "y": 0.2
@@ -223,7 +273,7 @@
       "portraitFile": "./assets/Player_5_portret.png",
       "body": {
         "textureKey": "Player_body_5",
-        "textureFile": "./assets/ragdoll/Player_body_5.png",
+        "textureFile": "./assets/ragdoll/Player_body_5.webp",
         "scale": {
           "x": 0.2,
           "y": 0.2
@@ -268,7 +318,7 @@
       "portraitFile": "./assets/Player_6_portret.png",
       "body": {
         "textureKey": "Player_body_6",
-        "textureFile": "./assets/ragdoll/Player_body_6.png",
+        "textureFile": "./assets/ragdoll/Player_body_6.webp",
         "scale": {
           "x": 0.2,
           "y": 0.2
@@ -313,7 +363,7 @@
       "portraitFile": "./assets/Player_7_portret.png",
       "body": {
         "textureKey": "Player_body_7",
-        "textureFile": "./assets/ragdoll/Player_body_7.png",
+        "textureFile": "./assets/ragdoll/Player_body_7.webp",
         "scale": {
           "x": 0.2,
           "y": 0.2

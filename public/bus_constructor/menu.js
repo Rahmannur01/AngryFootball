@@ -68,7 +68,9 @@ async function lockLandscape() {
 // =========================================================
 
 function updateOrientation() {
-    if (isPortrait()) {
+    const isMenuOpen = menuOverlay.style.display !== 'none';
+
+    if (!isMenuOpen && isPortrait()) {
         rotateOverlay.style.display = 'flex';
     }
     else {
@@ -134,6 +136,7 @@ playButton.addEventListener(
             await window.startBusGame();
             resizeGame();
             menuOverlay.style.display = 'none';
+            updateOrientation();
         } catch (error) {
             console.error('Ошибка запуска игры:', error);
             playButton.textContent = 'Ошибка загрузки — повторить';
@@ -235,6 +238,7 @@ document.addEventListener(
 );
 
 updateFullscreenButton();
+updateOrientation();
 
 // =========================================================
 // RESIZE OBSERVER
