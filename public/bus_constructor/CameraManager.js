@@ -8,6 +8,8 @@ class CameraManager {
 
         zoomDuration = 300,
 
+        contentBottomY = 960,
+
         zoomMultiplier = 1
     } = {}) {
 
@@ -19,6 +21,10 @@ class CameraManager {
         this.followLerpX = followLerpX;
 
         this.zoomDuration = zoomDuration;
+
+        // Нижняя граница полезной сцены: пол остаётся в кадре,
+        // а пустое пространство под ним не отнимает высоту сверху.
+        this.contentBottomY = contentBottomY;
 
         // Дополнительный zoom поверх baseZoom
         this.zoomMultiplier = zoomMultiplier;
@@ -211,24 +217,10 @@ class CameraManager {
             this.scene.scale.height;
 
 
-        let zoom =
-            viewportHeight /
-            this.worldHeight;
-
-
-        const visibleWorldWidth =
-            viewportWidth / zoom;
-
-
-        if (
-            visibleWorldWidth >
-            this.worldWidth
-        ) {
-
-            zoom =
-                viewportWidth /
-                this.worldWidth;
-        }
+        const zoom = Math.max(
+            viewportHeight / this.worldHeight,
+            viewportWidth / this.worldWidth
+        );
 
 
         this.baseZoom = zoom;
@@ -270,9 +262,18 @@ class CameraManager {
             viewportHeight / zoom;
 
 
-        const scrollY =
-            this.worldHeight -
-            visibleWorldHeight;
+        const maxScrollY = Math.max(
+            0,
+            this.worldHeight - visibleWorldHeight
+        );
+
+        const preferredScrollY =
+            this.contentBottomY - visibleWorldHeight;
+
+        const scrollY = Math.min(
+            maxScrollY,
+            Math.max(0, preferredScrollY)
+        );
 
 
         this.camera.setBounds(

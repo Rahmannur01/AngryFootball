@@ -1,6 +1,6 @@
 // Жизненный цикл теста. Эффекты пока подключаются через сцену.
 class BusTestController {
-    static MAX_SHOT_COUNT = 3;
+    static MAX_SHOT_COUNT = 10;
     static MAX_BOMB_SHOT = 3;
     static MAX_BOOST_SHOT = 3;
 

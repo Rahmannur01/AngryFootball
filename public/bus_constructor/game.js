@@ -179,7 +179,23 @@ class BusScene extends Phaser.Scene {
         const bus = this.busManager.getObjects()?.Karkas;
         if (!bus) return;
 
-        this.cameraManager.fitObject(bus, 60);
+        const viewport = window.visualViewport;
+        const width = viewport?.width || window.innerWidth;
+        const height = viewport?.height || window.innerHeight;
+        const isMobileLandscape =
+            width <= 1200 &&
+            height <= 700 &&
+            width > height;
+
+        // На телефоне не приближаем камеру к одному каркасу:
+        // над ним могут находиться уже расставленные игроки.
+        const maxMultiplier = isMobileLandscape ? 1 : 2;
+
+        this.cameraManager.fitObject(
+            bus,
+            60,
+            maxMultiplier
+        );
     }
     onAddPlayerButtonClick(buttonObj, cfg) {
         this.lineup.selectSeat(buttonObj, cfg);

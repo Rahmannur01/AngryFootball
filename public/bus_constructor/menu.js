@@ -4,12 +4,18 @@ const playButton = document.getElementById('play-btn');
 const gameContainer = document.getElementById('game-container');
 const fullscreenButton = document.getElementById('fullscreen-btn');
 
+let lastViewportWidth = 0;
+let lastViewportHeight = 0;
+let viewportStabilizationFrame = null;
+let viewportStabilizationUntil = 0;
+
 // =========================================================
 // SCREEN
 // =========================================================
 
 function isPortrait() {
-    return (window.innerHeight > window.innerWidth);
+    const { width, height } = getVisibleViewportSize();
+    return height > width;
 }
 
 // =========================================================
@@ -82,16 +88,68 @@ function updateOrientation() {
 // REFRESH PHASER
 // =========================================================
 
+function getVisibleViewportSize() {
+    const viewport = window.visualViewport;
+
+    return {
+        width: Math.max(1, Math.round(viewport?.width || window.innerWidth)),
+        height: Math.max(1, Math.round(viewport?.height || window.innerHeight))
+    };
+}
+
+function syncViewportSize() {
+    const { width, height } = getVisibleViewportSize();
+
+    if (width === lastViewportWidth && height === lastViewportHeight) {
+        return false;
+    }
+
+    lastViewportWidth = width;
+    lastViewportHeight = height;
+
+    document.documentElement.style.setProperty('--app-width', `${width}px`);
+    document.documentElement.style.setProperty('--app-height', `${height}px`);
+
+    return true;
+}
+
 function resizeGame() {
+    syncViewportSize();
+
     if (!window.game || !window.busGameReady) return;
 
     const rect = gameContainer.getBoundingClientRect();
-    const width = Math.max(1, Math.round(rect.width * window.GAME_DPR));
-    const height = Math.max(1, Math.round(rect.height * window.GAME_DPR));
+    const viewport = getVisibleViewportSize();
+    const cssWidth = Math.min(rect.width, viewport.width);
+    const cssHeight = Math.min(rect.height, viewport.height);
+    const width = Math.max(1, Math.round(cssWidth * window.GAME_DPR));
+    const height = Math.max(1, Math.round(cssHeight * window.GAME_DPR));
 
     if (window.game.scale.width !== width || window.game.scale.height !== height) {
         window.game.scale.resize(width, height);
     }
+}
+
+function stabilizeViewport(duration = 1800) {
+    viewportStabilizationUntil = Math.max(
+        viewportStabilizationUntil,
+        performance.now() + duration
+    );
+
+    if (viewportStabilizationFrame !== null) return;
+
+    function tick(now) {
+        resizeGame();
+
+        if (now < viewportStabilizationUntil) {
+            viewportStabilizationFrame = requestAnimationFrame(tick);
+        } else {
+            viewportStabilizationFrame = null;
+            resizeGame();
+        }
+    }
+
+    viewportStabilizationFrame = requestAnimationFrame(tick);
 }
 
 // Fullscreen and the browser toolbar can change the viewport over several frames.
@@ -102,8 +160,9 @@ function waitForViewport() {
         let previous = '';
 
         function check(now) {
-            const rect = gameContainer.getBoundingClientRect();
-            const size = `${rect.width}:${rect.height}`;
+            syncViewportSize();
+            const viewport = getVisibleViewportSize();
+            const size = `${viewport.width}:${viewport.height}`;
             if (size !== previous) {
                 previous = size;
                 changed = now;
@@ -155,6 +214,7 @@ let resizeTimer = null;
 let resizeFrame = null;
 
 function handleResize() {
+    syncViewportSize();
     updateOrientation();
     if (resizeFrame === null) {
         resizeFrame = requestAnimationFrame(() => {
@@ -179,17 +239,6 @@ window.addEventListener(
     handleResize
 );
 
-
-document.addEventListener(
-    'fullscreenchange',
-    handleResize
-);
-
-
-document.addEventListener(
-    'webkitfullscreenchange',
-    handleResize
-);
 
 if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', handleResize);
@@ -225,19 +274,20 @@ fullscreenButton.onclick = async () => {
     }
 
     updateFullscreenButton();
+    stabilizeViewport();
 };
 
-document.addEventListener(
-    'fullscreenchange',
-    updateFullscreenButton
-);
+function handleFullscreenChange() {
+    updateFullscreenButton();
+    handleResize();
+    stabilizeViewport();
+}
 
-document.addEventListener(
-    'webkitfullscreenchange',
-    updateFullscreenButton
-);
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 
 updateFullscreenButton();
+syncViewportSize();
 updateOrientation();
 
 // =========================================================
