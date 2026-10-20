@@ -22,6 +22,8 @@ class BusTestController {
         this.allDynamicObjects = null;
         this.isShotAbilityUsed = false;
         this.shotUsed = BusTestController.MAX_SHOT_COUNT;
+        this.wakeNextFrameTimer = null;
+        this.wakeRetryTimer = null;
 
         this.specialShotsLeft = {
             boost: BusTestController.MAX_BOOST_SHOT,
@@ -303,6 +305,22 @@ class BusTestController {
     }
 
     wakeBodiesAfterDestruction() {
+        this.wakeDynamicBodies();
+
+        this.wakeNextFrameTimer?.remove(false);
+        this.wakeRetryTimer?.remove(false);
+
+        this.wakeNextFrameTimer = this.scene.time.delayedCall(0, () => {
+            this.wakeNextFrameTimer = null;
+            if (this.active) this.wakeDynamicBodies();
+        });
+        this.wakeRetryTimer = this.scene.time.delayedCall(50, () => {
+            this.wakeRetryTimer = null;
+            if (this.active) this.wakeDynamicBodies();
+        });
+    }
+
+    wakeDynamicBodies() {
         const { Sleeping } = Phaser.Physics.Matter.Matter;
 
         this.getAllDynamicBodies(true).forEach(body => {
@@ -337,6 +355,10 @@ class BusTestController {
     }
 
     clearResources() {
+        this.wakeNextFrameTimer?.remove(false);
+        this.wakeNextFrameTimer = null;
+        this.wakeRetryTimer?.remove(false);
+        this.wakeRetryTimer = null;
         this.health?.destroy();
         this.health = null;
         this.ballControls?.destroy();
