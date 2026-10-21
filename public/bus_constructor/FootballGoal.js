@@ -3,7 +3,8 @@ class FootballGoal {
         x = 2250,
         y = 800,
         texture = 'FootballGoal',
-        scale = 0.25
+        scale = 0.25,
+        depth = 12
     } = {}) {
         this.scene = scene;
 
@@ -62,7 +63,7 @@ class FootballGoal {
         this.sprite
             .setName('FootballGoal')
             .setAlpha(1)
-            .setDepth(10)
+            .setDepth(depth)
             .setScale(scale)
             .setAngle(0)
             .setVisible(true)
