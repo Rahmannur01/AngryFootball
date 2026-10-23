@@ -416,22 +416,35 @@ body {
 }
 
 .game-button {
+    --button-top: #ffc36b;
+    --button-bottom: #f39435;
+    --button-edge: #ad591a;
+    --button-glow: rgba(255, 163, 72, 0.3);
+
     appearance: none;
     box-sizing: border-box;
-    width: var(--game-button-size);
+    width: auto;
+    min-width: var(--game-button-size);
     height: var(--game-button-size);
-    padding: clamp(3px, 1vh, 6px);
-    padding: clamp(3px, 1dvh, 6px);
-    border: 1px solid rgba(255, 255, 255, 0.82);
+    padding: 0 clamp(8px, 2.2vh, 18px);
+    padding: 0 clamp(8px, 2.2dvh, 18px);
+    border: 1px solid rgba(255, 255, 255, 0.35);
     border-radius: clamp(11px, 3dvh, 16px);
-    background:
-        linear-gradient(145deg,
-            #fff7e2,
-            #efd29f);
+    background: linear-gradient(180deg,
+            var(--button-top),
+            var(--button-bottom));
     box-shadow:
-        inset 0 1px 1px rgba(255, 255, 255, 0.85),
-        inset 0 -2px 4px rgba(186, 130, 60, 0.14),
-        0 5px 12px rgba(72, 48, 24, 0.2);
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 4px 0 var(--button-edge),
+        0 8px 18px rgba(0, 0, 0, 0.25);
+
+    color: #23180d;
+    font-family: inherit;
+    font-size: clamp(11px, 3.2vh, 16px);
+    font-size: clamp(11px, 3.2dvh, 16px);
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
 
     cursor: pointer;
     user-select: none;
@@ -441,17 +454,16 @@ body {
     transition:
         transform 120ms ease,
         filter 120ms ease,
+        box-shadow 120ms ease,
         opacity 120ms ease;
 }
 
-.button-icon {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    pointer-events: none;
-    user-select: none;
-    filter: drop-shadow(0 3px 3px rgba(91, 60, 27, 0.22));
+#fullscreen-btn,
+#restart-test-btn {
+    width: var(--game-button-size);
+    padding: 0;
+    font-size: clamp(20px, 5.5vh, 30px);
+    font-size: clamp(20px, 5.5dvh, 30px);
 }
 
 #test-bus-btn,
@@ -482,16 +494,33 @@ body {
     white-space: nowrap;
 }
 
+.game-button--test {
+    --button-top: #a5eb84;
+    --button-bottom: #65bd49;
+    --button-edge: #36752a;
+    --button-glow: rgba(117, 209, 84, 0.3);
+
+    color: #14250f;
+}
+
 @media (hover: hover) {
     .game-button:hover:not(:disabled) {
         transform: translateY(-2px) scale(1.06);
         filter: brightness(1.08);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.4),
+            0 6px 0 var(--button-edge),
+            0 10px 24px var(--button-glow);
     }
 }
 
 .game-button:active:not(:disabled) {
     transform: translateY(2px) scale(0.94);
     filter: brightness(0.95);
+    box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.15),
+        0 1px 0 var(--button-edge),
+        0 3px 8px rgba(0, 0, 0, 0.2);
 }
 
 .game-button:focus-visible {
@@ -502,6 +531,7 @@ body {
 .game-button:disabled {
     opacity: 0.5;
     cursor: default;
+    box-shadow: none;
 }
 
 .game-button[hidden] {

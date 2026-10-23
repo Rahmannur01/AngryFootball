@@ -107,6 +107,7 @@ class BallInputController {
         this.clearAim();
 
         const ball = this.ball.sprite;
+        const visualScale = this.getAimVisualScale();
         const power = Phaser.Math.Clamp(
             dragDistance / BallInputController.MAX_DRAG,
             0,
@@ -117,7 +118,13 @@ class BallInputController {
             ball.displayHeight
         ) * 0.5;
 
-        this.drawPowerRing(ball.x, ball.y, ballRadius + 12, power);
+        this.drawPowerRing(
+            ball.x,
+            ball.y,
+            ballRadius + 12 * visualScale,
+            power,
+            visualScale
+        );
 
         const visibleDotCount = Math.ceil(
             BallInputController.AIM_DOT_COUNT * power
@@ -134,29 +141,35 @@ class BallInputController {
                 Math.sin(angle) * distance +
                 0.05 * i * i;
             const progress = i / BallInputController.AIM_DOT_COUNT;
-            const alpha = Phaser.Math.Linear(0.8, 0.18, progress);
-            const radius = Phaser.Math.Linear(3.5, 1.5, progress);
+            const alpha = Phaser.Math.Linear(0.95, 0.35, progress);
+            const radius = Phaser.Math.Linear(5, 2.75, progress) * visualScale;
+            const outlineWidth = 1.75 * visualScale;
 
-            this.aimGraphics.fillStyle(0x000000, alpha * 0.32);
-            this.aimGraphics.fillCircle(dotX, dotY, radius + 1.5);
+            this.aimGraphics.fillStyle(0x000000, alpha * 0.48);
+            this.aimGraphics.fillCircle(dotX, dotY, radius + outlineWidth);
 
             this.aimGraphics.fillStyle(0xffffff, alpha);
             this.aimGraphics.fillCircle(dotX, dotY, radius);
         }
     }
 
-    drawPowerRing(x, y, radius, power) {
+    getAimVisualScale() {
+        const cameraZoom = this.ball?.scene?.cameras?.main?.zoom || 1;
+        return Phaser.Math.Clamp(1 / cameraZoom, 1, 3);
+    }
+
+    drawPowerRing(x, y, radius, power, visualScale = 1) {
         const startAngle = -Math.PI / 2;
         const endAngle = startAngle + Math.PI * 2 * power;
 
-        this.aimGraphics.lineStyle(2, 0x000000, 0.3);
+        this.aimGraphics.lineStyle(4 * visualScale, 0x000000, 0.45);
         this.aimGraphics.strokeCircle(x, y, radius);
-        this.aimGraphics.lineStyle(1, 0xffffff, 0.18);
+        this.aimGraphics.lineStyle(2 * visualScale, 0xffffff, 0.35);
         this.aimGraphics.strokeCircle(x, y, radius);
 
         if (power <= 0) return;
 
-        this.aimGraphics.lineStyle(2, 0xffffff, 0.68);
+        this.aimGraphics.lineStyle(4 * visualScale, 0xffffff, 0.9);
         this.aimGraphics.beginPath();
         this.aimGraphics.arc(x, y, radius, startAngle, endAngle);
         this.aimGraphics.strokePath();

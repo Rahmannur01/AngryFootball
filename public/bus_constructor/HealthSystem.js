@@ -1,15 +1,15 @@
 const DESTRUCTIBLE_PROFILES = Object.freeze({
     destructible_barrel: Object.freeze({
         material: 'barrel',
-        maxHp: 1.7
+        maxHp: 2.3
     }),
     destructible_wood: Object.freeze({
         material: 'wood',
-        maxHp: 2.5
+        maxHp: 3.5
     }),
     destructible_stone: Object.freeze({
         material: 'stone',
-        maxHp: 3.5
+        maxHp: 4.7
     })
 });
 
@@ -17,6 +17,12 @@ const DESTRUCTIBLE_PROFILES = Object.freeze({
 class HealthSystem {
     static MIN_IMPACT_SPEED = 0.3;
     static DAMAGE_PER_SPEED = 0.06;
+    static SOURCE_DAMAGE_MULTIPLIERS = Object.freeze({
+        ball: 1.0,
+        character: 0.80,
+        destructible: 0.55,
+        environment: 0.35
+    });
 
     constructor(scene, {
         onDeath = () => { },
@@ -34,6 +40,17 @@ class HealthSystem {
 
     getRootBody(body) {
         return body?.parent || body;
+    }
+
+    getSourceDamageMultiplier(body) {
+        if (!body || body.dealsImpactDamage === false) return 0;
+        if (body.gameObject?.name === 'Ball') {
+            return HealthSystem.SOURCE_DAMAGE_MULTIPLIERS.ball;
+        }
+
+        const sourceTarget = this.targets.get(body);
+        return HealthSystem.SOURCE_DAMAGE_MULTIPLIERS[sourceTarget?.kind] ??
+            HealthSystem.SOURCE_DAMAGE_MULTIPLIERS.environment;
     }
 
     registerCharacter(entry, maxHp = 2) {
@@ -140,24 +157,51 @@ class HealthSystem {
             if (impactSpeed <= HealthSystem.MIN_IMPACT_SPEED) return;
 
             const impactPoint = collision?.supports?.[0] || null;
-            [rootBodyA, rootBodyB].forEach(body => {
+            [
+                { body: rootBodyA, source: rootBodyB },
+                { body: rootBodyB, source: rootBodyA }
+            ].forEach(({ body, source }) => {
+                const damageMultiplier =
+                    this.getSourceDamageMultiplier(source);
+                if (damageMultiplier <= 0) return;
+
                 const target = this.targets.get(body);
                 const previous = strongestImpacts.get(target);
-                if (!target || previous?.impactSpeed >= impactSpeed) return;
+                const damage = impactSpeed * damageMultiplier;
+                if (!target || previous?.damage >= damage) return;
 
-                strongestImpacts.set(target, { body, impactSpeed, impactPoint });
+                strongestImpacts.set(target, {
+                    body,
+                    impactSpeed,
+                    damageMultiplier,
+                    damage,
+                    impactPoint
+                });
             });
         });
 
-        strongestImpacts.forEach(({ body, impactSpeed, impactPoint }) => {
-            this.applyImpactDamage(body, impactSpeed, impactPoint);
-        });
+        strongestImpacts.forEach(({
+            body,
+            impactSpeed,
+            damageMultiplier,
+            impactPoint
+        }) => this.applyImpactDamage(
+            body,
+            impactSpeed,
+            impactPoint,
+            damageMultiplier
+        ));
     }
 
-    applyImpactDamage(body, impactSpeed, impactPoint = null) {
+    applyImpactDamage(
+        body,
+        impactSpeed,
+        impactPoint = null,
+        damageMultiplier = 1
+    ) {
         return this.applyDamage(
             body,
-            impactSpeed * HealthSystem.DAMAGE_PER_SPEED,
+            impactSpeed * HealthSystem.DAMAGE_PER_SPEED * damageMultiplier,
             impactPoint
         );
     }

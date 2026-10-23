@@ -117,6 +117,8 @@ class Goalkeeper {
             .setDepth(depth + armConfig.depthOffset)
             .setCollisionGroup(this.collisionGroup);
 
+        sprite.body.dealsImpactDamage = false;
+
         return sprite;
     }
 
