@@ -1,9 +1,10 @@
 class FootballGoal {
     constructor(scene, {
         x = 2250,
-        y = 800,
+        y = 820,
         texture = 'FootballGoal',
-        scale = 0.25,
+        scaleX = 0.25,
+        scaleY = 0.20,
         depth = 12
     } = {}) {
         this.scene = scene;
@@ -18,10 +19,10 @@ class FootballGoal {
         const colliderLiftY = 45;
         this.bodyOffsetX = (
             colliderCenterX - colliderShiftLeft - textureWidth * 0.62
-        ) * scale;
+        ) * scaleX;
         this.bodyOffsetY = (
             colliderCenterY - colliderLiftY - textureHeight / 2
-        ) * scale;
+        ) * scaleY;
 
         this.sprite = scene.matter.add.image(
             x + this.bodyOffsetX,
@@ -64,7 +65,7 @@ class FootballGoal {
             .setName('FootballGoal')
             .setAlpha(1)
             .setDepth(depth)
-            .setScale(scale)
+            .setScale(scaleX, scaleY)
             .setAngle(0)
             .setVisible(true)
             .setBlendMode(0)
