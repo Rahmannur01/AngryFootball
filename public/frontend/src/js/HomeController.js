@@ -82,20 +82,9 @@ export class HomeController {
         return 'Стартовая команда готова';
     }
 
-    get chestTitle() {
-        if (this.state.chest.isComplete) return 'Награды получены';
-        if (this.state.chest.isOpen) return 'Продолжить открытие';
-        return 'Стартовые сундуки';
-    }
-
-    get chestDescription() {
-        if (this.state.chest.isComplete) {
-            return 'Все футболисты стартового набора уже были показаны.';
-        }
-        if (this.state.chest.isOpen) {
-            return 'Покажи оставшихся футболистов стартового набора.';
-        }
-        return 'Открой 11 сундуков и получи первую команду футболистов.';
+    isChestReceived(chestNumber) {
+        const chest = this.state.chests[chestNumber - 1];
+        return Boolean(chest?.revealed_at);
     }
 
     get chestButtonLabel() {
@@ -103,14 +92,6 @@ export class HomeController {
         if (this.state.chest.isComplete) return 'Получено';
         if (this.state.chest.isOpen) return 'Показать игроков';
         return 'Открыть 11 сундуков';
-    }
-
-    get chestStatusLabel() {
-        if (this.state.chest.isComplete) return 'Все награды просмотрены';
-        if (this.state.chest.pendingCount > 0) {
-            return `Осталось показать: ${this.state.chest.pendingCount}`;
-        }
-        return 'Готово к открытию';
     }
 
     get currentReward() {
@@ -155,16 +136,22 @@ export class HomeController {
     }
 
     applyChestState(chests) {
-        this.state.chests = chests;
-        this.state.chest.isOpen = chests.some(
+        const orderedChests = [...chests].sort(
+            (left, right) => left.id - right.id
+        );
+
+        this.state.chests = orderedChests;
+        this.state.chest.isOpen = orderedChests.some(
             (chest) => chest.status === 'opened'
         );
-        this.state.chest.pendingCount = chests.filter(
+        this.state.chest.pendingCount = orderedChests.filter(
             (chest) => chest.status === 'opened' && !chest.revealed_at
         ).length;
-        this.state.chest.isComplete = chests.length > 0 && chests.every(
-            (chest) => chest.status === 'opened' && Boolean(chest.revealed_at)
-        );
+        this.state.chest.isComplete = orderedChests.length > 0
+            && orderedChests.every(
+                (chest) => chest.status === 'opened'
+                    && Boolean(chest.revealed_at)
+            );
     }
 
     mergeChestState(updatedChests) {
@@ -470,10 +457,8 @@ export class HomeController {
             visiblePlayers: this.vue.computed(() => this.visiblePlayers),
             emptySquadSlots: this.vue.computed(() => this.emptySquadSlots),
             squadStatus: this.vue.computed(() => this.squadStatus),
-            chestTitle: this.vue.computed(() => this.chestTitle),
-            chestDescription: this.vue.computed(() => this.chestDescription),
+            isChestReceived: this.isChestReceived.bind(this),
             chestButtonLabel: this.vue.computed(() => this.chestButtonLabel),
-            chestStatusLabel: this.vue.computed(() => this.chestStatusLabel),
             currentReward: this.vue.computed(() => this.currentReward),
             rewardButtonLabel: this.vue.computed(() => this.rewardButtonLabel),
             toggleProfileMenu: this.toggleProfileMenu.bind(this),

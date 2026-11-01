@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#090b0a">
+    <meta name="theme-color" content="#121316">
     <meta name="description" content="Главная страница Angry Football">
     <title>Angry Football</title>
     <link rel="stylesheet" href="./src/home.css">
@@ -45,8 +45,8 @@
         <div v-else class="dashboard">
             <section class="welcome-row" aria-labelledby="welcome-title">
                 <div>
-                    <p class="eyebrow">Главная</p>
-                    <h1 id="welcome-title">Твоя команда начинается здесь</h1>
+                    <p class="eyebrow">Командный штаб</p>
+                    <h1 id="welcome-title">Собери команду. Построй защиту.</h1>
                 </div>
                 <div class="level-progress" aria-label="Прогресс первого уровня">
                     <span>Уровень 1</span>
@@ -58,11 +58,29 @@
             <section class="primary-grid" aria-label="Игровые разделы">
                 <article class="chest-card" :class="{ 'chest-card--open': state.chest.isOpen }">
                     <div class="chest-copy">
-                        <p class="eyebrow">Награда готова</p>
-                        <h2>{{ chestTitle }}</h2>
-                        <p class="card-description">
-                            {{ chestDescription }}
-                        </p>
+                        <p class="eyebrow">Стартовый пак</p>
+                        <h2>11 стартовых сундуков</h2>
+
+                        <div class="chest-list" aria-label="Одиннадцать стартовых сундуков">
+                            <span
+                                v-for="chestNumber in 11"
+                                :key="chestNumber"
+                                class="chest-list__item"
+                                :class="{
+                                    'chest-list__item--received': isChestReceived(chestNumber)
+                                }"
+                                :aria-label="isChestReceived(chestNumber)
+                                    ? `Сундук ${chestNumber}, получен`
+                                    : `Сундук ${chestNumber}`"
+                            >
+                                <span>Сундук {{ chestNumber }}</span>
+                                <strong
+                                    v-if="isChestReceived(chestNumber)"
+                                    class="chest-list__check"
+                                    aria-hidden="true"
+                                >✓</strong>
+                            </span>
+                        </div>
 
                         <button
                             class="primary-button"
@@ -83,63 +101,12 @@
                             {{ state.notice.text }}
                         </p>
                     </div>
-                    <div class="chest-meta" aria-label="Содержимое награды">
-                        <span>Стартовая награда</span>
-                        <strong>11 игроков</strong>
-                        <span>{{ chestStatusLabel }}</span>
-                    </div>
                 </article>
-
-                <section
-                    v-if="state.roster.length"
-                    class="reward-gallery"
-                    aria-labelledby="rewards-title"
-                >
-                    <div class="reward-gallery__heading">
-                        <div>
-                            <p class="eyebrow">Стартовый набор</p>
-                            <h2 id="rewards-title">Полученные футболисты</h2>
-                        </div>
-                        <span class="counter">{{ state.roster.length }} игроков</span>
-                    </div>
-
-                    <div class="reward-grid">
-                        <article
-                            v-for="player in state.roster"
-                            :key="player.chestId"
-                            class="player-card"
-                        >
-                            <div class="player-card__photo">
-                                <img
-                                    v-if="player.photo && !player.imageFailed"
-                                    :src="player.photo"
-                                    :alt="`Фотография ${player.name}`"
-                                    loading="lazy"
-                                    decoding="async"
-                                    referrerpolicy="no-referrer"
-                                    @error="handlePlayerImageError(player)"
-                                >
-                                <span v-else aria-hidden="true">
-                                    {{ player.initials }}
-                                </span>
-                            </div>
-
-                            <div class="player-card__content">
-                                <div class="player-card__meta">
-                                    <span>{{ player.shortPosition }}</span>
-                                    <span>№ {{ player.number }}</span>
-                                </div>
-                                <h3>{{ player.name }}</h3>
-                                <p>{{ player.position }}</p>
-                            </div>
-                        </article>
-                    </div>
-                </section>
 
                 <article class="section-card squad-card">
                     <div class="card-heading">
                         <div>
-                            <p class="eyebrow">Моя команда</p>
+                            <p class="eyebrow">Боевой состав</p>
                             <h2>Состав</h2>
                         </div>
                         <span class="counter">{{ state.roster.length }} / 11</span>
@@ -174,20 +141,20 @@
                 <article class="section-card constructor-card">
                     <div class="card-heading">
                         <div>
-                            <p class="eyebrow">Защита ворот</p>
+                            <p class="eyebrow">Гараж</p>
                             <h2>Конструктор</h2>
                         </div>
-                        <span class="status-dot">Черновик</span>
+                        <span class="status-dot">Проект</span>
                     </div>
 
                     <div class="constructor-summary">
-                        <span>Текущая схема</span>
+                        <span>Схема защиты</span>
                         <strong>Автобус</strong>
-                        <span>0 из 10 игроков размещено</span>
+                        <span>Готовность: 0 из 10</span>
                     </div>
 
                     <div class="card-footer">
-                        <span>Расставь игроков на автобусе</span>
+                        <span>Размести игроков перед воротами</span>
                         <a class="text-button" href="../game/bus_constructor/index.html">Открыть</a>
                     </div>
                 </article>
@@ -265,7 +232,7 @@
                         <span>№ {{ currentReward.number }}</span>
                     </div>
                     <p class="eyebrow">
-                        {{ state.reveal.isIdentityVisible ? 'Новый футболист' : 'Позиция определена' }}
+                        {{ state.reveal.isIdentityVisible ? 'Новый контракт' : 'Позиция определена' }}
                     </p>
                     <h2
                         id="reward-reveal-title"
@@ -300,13 +267,13 @@
 
         <nav class="mobile-nav" aria-label="Основная навигация">
             <a class="mobile-nav__item mobile-nav__item--active" href="./home.html">
-                Главная
+                Штаб
             </a>
             <button class="mobile-nav__item" type="button">
-                Состав
+                Команда
             </button>
             <a class="mobile-nav__item" href="../game/bus_constructor/index.html">
-                Автобус
+                Гараж
             </a>
         </nav>
     </main>
