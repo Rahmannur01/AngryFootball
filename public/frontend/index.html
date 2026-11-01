@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#111310">
+    <meta
+        name="description"
+        content="Вход и регистрация в Angry Football"
+    >
+    <title>Angry Football — Авторизация</title>
+    <link rel="stylesheet" href="./src/styles.css">
+</head>
+<body>
+    <main id="app" class="auth-shell" v-cloak>
+        <section
+            v-if="!state.isCheckingSession"
+            class="auth-card"
+            aria-label="Авторизация"
+        >
+            <div class="mode-switch" role="tablist" aria-label="Режим авторизации">
+                <button
+                    type="button"
+                    role="tab"
+                    :aria-selected="state.mode === 'login'"
+                    :class="{ active: state.mode === 'login' }"
+                    @click="setMode('login')"
+                >
+                    Вход
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    :aria-selected="state.mode === 'register'"
+                    :class="{ active: state.mode === 'register' }"
+                    @click="setMode('register')"
+                >
+                    Регистрация
+                </button>
+            </div>
+
+            <form class="auth-form" novalidate @submit.prevent="submit">
+                <div v-if="state.mode === 'login'" class="field-group">
+                    <label for="identifier">Никнейм</label>
+                    <input
+                        id="identifier"
+                        v-model.trim="state.forms.login.identifier"
+                        name="identifier"
+                        type="text"
+                        autocomplete="username"
+                        :aria-invalid="Boolean(state.errors.identifier)"
+                        :aria-describedby="state.errors.identifier ? 'identifier-error' : undefined"
+                        @input="clearError('identifier')"
+                    >
+                    <span
+                        v-if="state.errors.identifier"
+                        id="identifier-error"
+                        class="field-error"
+                    >
+                        {{ state.errors.identifier }}
+                    </span>
+                </div>
+
+                <div v-else class="registration-fields">
+                    <div class="field-group">
+                        <label for="username">Никнейм</label>
+                        <input
+                            id="username"
+                            v-model.trim="state.forms.register.username"
+                            name="username"
+                            type="text"
+                            autocomplete="username"
+                            :aria-invalid="Boolean(state.errors.username)"
+                            :aria-describedby="state.errors.username ? 'username-error' : undefined"
+                            @input="clearError('username')"
+                        >
+                        <span
+                            v-if="state.errors.username"
+                            id="username-error"
+                            class="field-error"
+                        >
+                            {{ state.errors.username }}
+                        </span>
+                    </div>
+
+                    <div class="field-group">
+                        <label for="email">Email</label>
+                        <input
+                            id="email"
+                            v-model.trim="state.forms.register.email"
+                            name="email"
+                            type="email"
+                            autocomplete="email"
+                            :aria-invalid="Boolean(state.errors.email)"
+                            :aria-describedby="state.errors.email ? 'email-error' : undefined"
+                            @input="clearError('email')"
+                        >
+                        <span
+                            v-if="state.errors.email"
+                            id="email-error"
+                            class="field-error"
+                        >
+                            {{ state.errors.email }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label for="password">Пароль</label>
+                    <div class="password-field">
+                        <input
+                            id="password"
+                            v-model="activeForm.password"
+                            name="password"
+                            :type="passwordType('password')"
+                            :autocomplete="state.mode === 'login' ? 'current-password' : 'new-password'"
+                            :aria-invalid="Boolean(state.errors.password)"
+                            :aria-describedby="state.errors.password ? 'password-error' : undefined"
+                            @input="clearError('password')"
+                        >
+                        <button
+                            class="password-toggle"
+                            type="button"
+                            :aria-label="passwordToggleLabel('password')"
+                            @click="togglePassword('password')"
+                        >
+                            {{ state.visiblePasswords.password ? 'Скрыть' : 'Показать' }}
+                        </button>
+                    </div>
+                    <span
+                        v-if="state.errors.password"
+                        id="password-error"
+                        class="field-error"
+                    >
+                        {{ state.errors.password }}
+                    </span>
+                </div>
+
+                <div v-if="state.mode === 'register'" class="field-group">
+                    <label for="password-confirmation">Повтор пароля</label>
+                    <div class="password-field">
+                        <input
+                            id="password-confirmation"
+                            v-model="state.forms.register.passwordConfirmation"
+                            name="passwordConfirmation"
+                            :type="passwordType('passwordConfirmation')"
+                            autocomplete="new-password"
+                            :aria-invalid="Boolean(state.errors.passwordConfirmation)"
+                            :aria-describedby="state.errors.passwordConfirmation ? 'password-confirmation-error' : undefined"
+                            @input="clearError('passwordConfirmation')"
+                        >
+                        <button
+                            class="password-toggle"
+                            type="button"
+                            :aria-label="passwordToggleLabel('passwordConfirmation')"
+                            @click="togglePassword('passwordConfirmation')"
+                        >
+                            {{ state.visiblePasswords.passwordConfirmation ? 'Скрыть' : 'Показать' }}
+                        </button>
+                    </div>
+                    <span
+                        v-if="state.errors.passwordConfirmation"
+                        id="password-confirmation-error"
+                        class="field-error"
+                    >
+                        {{ state.errors.passwordConfirmation }}
+                    </span>
+                </div>
+
+                <p
+                    v-if="state.notice.text"
+                    class="form-notice"
+                    :class="`form-notice--${state.notice.type}`"
+                    role="status"
+                    aria-live="polite"
+                >
+                    {{ state.notice.text }}
+                </p>
+
+                <button class="submit-button" type="submit" :disabled="state.isSubmitting">
+                    {{ submitLabel }}
+                </button>
+            </form>
+        </section>
+    </main>
+
+    <noscript>Для авторизации необходимо включить JavaScript.</noscript>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html>

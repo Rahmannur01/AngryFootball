@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#090b0a">
+    <meta name="description" content="Главная страница Angry Football">
+    <title>Angry Football</title>
+    <link rel="stylesheet" href="./src/home.css">
+</head>
+<body>
+    <main id="app" class="game-shell" v-cloak>
+        <header class="topbar">
+            <a class="brand" href="./home.html" aria-label="Angry Football — главная">
+                <span class="brand-mark" aria-hidden="true">AF</span>
+                <span class="brand-name">Angry Football</span>
+            </a>
+
+            <div class="profile">
+                <div class="profile-copy">
+                    <strong>{{ displayName }}</strong>
+                    <span>Уровень 1</span>
+                </div>
+                <button
+                    class="profile-button"
+                    type="button"
+                    :aria-expanded="state.isProfileMenuOpen"
+                    aria-label="Открыть меню профиля"
+                    @click="toggleProfileMenu"
+                >
+                    Профиль
+                </button>
+
+                <div v-if="state.isProfileMenuOpen" class="profile-menu">
+                    <button type="button" @click="logout">Выйти</button>
+                </div>
+            </div>
+        </header>
+
+        <section v-if="state.isLoading" class="loading-state" aria-live="polite">
+            <span class="loading-ball" aria-hidden="true"></span>
+            <span>Загружаем команду…</span>
+        </section>
+
+        <div v-else class="dashboard">
+            <section class="welcome-row" aria-labelledby="welcome-title">
+                <div>
+                    <p class="eyebrow">Главная</p>
+                    <h1 id="welcome-title">Твоя команда начинается здесь</h1>
+                </div>
+                <div class="level-progress" aria-label="Прогресс первого уровня">
+                    <span>Уровень 1</span>
+                    <strong>0 / 100 XP</strong>
+                    <div class="progress-track"><span style="width: 0%"></span></div>
+                </div>
+            </section>
+
+            <section class="primary-grid" aria-label="Игровые разделы">
+                <article class="chest-card" :class="{ 'chest-card--open': state.chest.isOpen }">
+                    <div class="chest-copy">
+                        <p class="eyebrow">Награда готова</p>
+                        <h2>{{ chestTitle }}</h2>
+                        <p class="card-description">
+                            {{ chestDescription }}
+                        </p>
+
+                        <button
+                            class="primary-button"
+                            type="button"
+                            :disabled="state.chest.isOpening || state.chest.isComplete"
+                            @click="openChest"
+                        >
+                            {{ chestButtonLabel }}
+                        </button>
+
+                        <p
+                            v-if="state.notice.text"
+                            class="page-notice"
+                            :class="`page-notice--${state.notice.type}`"
+                            role="status"
+                            aria-live="polite"
+                        >
+                            {{ state.notice.text }}
+                        </p>
+                    </div>
+                    <div class="chest-meta" aria-label="Содержимое награды">
+                        <span>Стартовая награда</span>
+                        <strong>11 игроков</strong>
+                        <span>{{ chestStatusLabel }}</span>
+                    </div>
+                </article>
+
+                <section
+                    v-if="state.roster.length"
+                    class="reward-gallery"
+                    aria-labelledby="rewards-title"
+                >
+                    <div class="reward-gallery__heading">
+                        <div>
+                            <p class="eyebrow">Стартовый набор</p>
+                            <h2 id="rewards-title">Полученные футболисты</h2>
+                        </div>
+                        <span class="counter">{{ state.roster.length }} игроков</span>
+                    </div>
+
+                    <div class="reward-grid">
+                        <article
+                            v-for="player in state.roster"
+                            :key="player.chestId"
+                            class="player-card"
+                        >
+                            <div class="player-card__photo">
+                                <img
+                                    v-if="player.photo && !player.imageFailed"
+                                    :src="player.photo"
+                                    :alt="`Фотография ${player.name}`"
+                                    loading="lazy"
+                                    decoding="async"
+                                    referrerpolicy="no-referrer"
+                                    @error="handlePlayerImageError(player)"
+                                >
+                                <span v-else aria-hidden="true">
+                                    {{ player.initials }}
+                                </span>
+                            </div>
+
+                            <div class="player-card__content">
+                                <div class="player-card__meta">
+                                    <span>{{ player.shortPosition }}</span>
+                                    <span>№ {{ player.number }}</span>
+                                </div>
+                                <h3>{{ player.name }}</h3>
+                                <p>{{ player.position }}</p>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <article class="section-card squad-card">
+                    <div class="card-heading">
+                        <div>
+                            <p class="eyebrow">Моя команда</p>
+                            <h2>Состав</h2>
+                        </div>
+                        <span class="counter">{{ state.roster.length }} / 11</span>
+                    </div>
+
+                    <div class="player-stack" aria-label="Полученные игроки">
+                        <div
+                            v-for="player in visiblePlayers"
+                            :key="player.id"
+                            class="mini-player"
+                        >
+                            <span class="mini-player__position">{{ player.shortPosition }}</span>
+                            <strong class="mini-player__name">{{ player.name }}</strong>
+                            <span class="mini-player__number">№ {{ player.number }}</span>
+                        </div>
+                        <div
+                            v-for="slot in emptySquadSlots"
+                            :key="`empty-${slot}`"
+                            class="mini-player mini-player--empty"
+                            aria-hidden="true"
+                        >
+                            <span>+</span>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <span>{{ squadStatus }}</span>
+                        <button class="text-button" type="button">Собрать состав</button>
+                    </div>
+                </article>
+
+                <article class="section-card constructor-card">
+                    <div class="card-heading">
+                        <div>
+                            <p class="eyebrow">Защита ворот</p>
+                            <h2>Конструктор</h2>
+                        </div>
+                        <span class="status-dot">Черновик</span>
+                    </div>
+
+                    <div class="constructor-summary">
+                        <span>Текущая схема</span>
+                        <strong>Автобус</strong>
+                        <span>0 из 10 игроков размещено</span>
+                    </div>
+
+                    <div class="card-footer">
+                        <span>Расставь игроков на автобусе</span>
+                        <a class="text-button" href="../game/bus_constructor/index.html">Открыть</a>
+                    </div>
+                </article>
+            </section>
+        </div>
+
+        <div
+            v-if="state.reveal.isVisible && currentReward"
+            class="reward-reveal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reward-reveal-title"
+        >
+            <article
+                :key="currentReward.chestId"
+                class="reward-reveal__card"
+            >
+                <header class="reward-reveal__header">
+                    <span>
+                        {{ state.reveal.index + 1 }} / {{ state.reveal.players.length }}
+                    </span>
+                    <button
+                        type="button"
+                        :disabled="state.reveal.isSaving"
+                        aria-label="Закрыть показ игроков"
+                        @click="closeRewardReveal"
+                    >
+                        Закрыть
+                    </button>
+                </header>
+
+                <div
+                    class="reward-reveal__photo"
+                    :class="{
+                        'reward-reveal__photo--identity-visible': state.reveal.isIdentityVisible,
+                        'reward-reveal__photo--ready': state.reveal.isPhotoReady
+                    }"
+                >
+                    <img
+                        v-if="currentReward.photo && !currentReward.imageFailed"
+                        :src="currentReward.photo"
+                        :alt="`Фотография ${currentReward.name}`"
+                        decoding="async"
+                        fetchpriority="high"
+                        referrerpolicy="no-referrer"
+                        @load="handleRewardImageLoad(currentReward)"
+                        @error="handlePlayerImageError(currentReward)"
+                    >
+                    <span
+                        v-if="!state.reveal.isIdentityVisible"
+                        class="reward-reveal__mystery"
+                        aria-hidden="true"
+                    >
+                        ?
+                    </span>
+                    <span
+                        v-else-if="!currentReward.photo || currentReward.imageFailed"
+                        class="reward-reveal__initials"
+                        aria-hidden="true"
+                    >
+                        {{ currentReward.initials }}
+                    </span>
+                    <span
+                        v-else-if="!state.reveal.isPhotoReady"
+                        class="reward-reveal__loading-photo"
+                        aria-hidden="true"
+                    >
+                        Загружаем фото…
+                    </span>
+                </div>
+
+                <div class="reward-reveal__body">
+                    <div class="reward-reveal__meta">
+                        <span>{{ currentReward.shortPosition }}</span>
+                        <span>№ {{ currentReward.number }}</span>
+                    </div>
+                    <p class="eyebrow">
+                        {{ state.reveal.isIdentityVisible ? 'Новый футболист' : 'Позиция определена' }}
+                    </p>
+                    <h2
+                        id="reward-reveal-title"
+                        :key="state.reveal.isIdentityVisible ? currentReward.id : 'hidden'"
+                        class="reward-reveal__name"
+                    >
+                        {{ state.reveal.isIdentityVisible ? currentReward.name : '???' }}
+                    </h2>
+                    <p class="reward-reveal__position">
+                        {{ state.reveal.isIdentityVisible ? currentReward.position : 'Имя скоро откроется' }}
+                    </p>
+
+                    <p
+                        v-if="state.reveal.error"
+                        class="reward-reveal__error"
+                        role="alert"
+                    >
+                        {{ state.reveal.error }}
+                    </p>
+
+                    <button
+                        class="primary-button"
+                        type="button"
+                        :disabled="state.reveal.isSaving || !state.reveal.isIdentityVisible"
+                        @click="showNextReward"
+                    >
+                        {{ rewardButtonLabel }}
+                    </button>
+                </div>
+            </article>
+        </div>
+
+        <nav class="mobile-nav" aria-label="Основная навигация">
+            <a class="mobile-nav__item mobile-nav__item--active" href="./home.html">
+                Главная
+            </a>
+            <button class="mobile-nav__item" type="button">
+                Состав
+            </button>
+            <a class="mobile-nav__item" href="../game/bus_constructor/index.html">
+                Автобус
+            </a>
+        </nav>
+    </main>
+
+    <noscript>Для игры необходимо включить JavaScript.</noscript>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script type="module" src="./src/home.js"></script>
+</body>
+</html>
