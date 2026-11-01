@@ -40,26 +40,36 @@ def _validate_positive_id(value: int, field_name: str) -> None:
         raise ValueError(f"{field_name} должен быть положительным числом")
 
 
-def _validate_start_reward_ids(
-    footballer_ids: Sequence[int],
-) -> list[int]:
-    reward_ids = list(footballer_ids)
+def _validate_start_rewards(
+    rewards: Sequence[tuple[int, int | None]],
+) -> list[tuple[int, int | None]]:
+    validated_rewards = list(rewards)
 
-    if len(reward_ids) != rules.START_PACK_SIZE:
+    if len(validated_rewards) != rules.START_PACK_SIZE:
         raise ValueError(
             "Стартовый набор должен содержать "
             f"ровно {rules.START_PACK_SIZE} футболистов"
         )
 
-    for footballer_id in reward_ids:
+    for footballer_id, character_type_id in validated_rewards:
         _validate_positive_id(footballer_id, "footballer_id")
+        if character_type_id is not None:
+            _validate_positive_id(character_type_id, "character_type_id")
+            if character_type_id not in rules.CHARACTER_TYPE_IDS:
+                raise ValueError(
+                    f"Неизвестный character_type_id={character_type_id}"
+                )
 
-    if len(set(reward_ids)) != len(reward_ids):
+    footballer_ids = [
+        footballer_id
+        for footballer_id, _ in validated_rewards
+    ]
+    if len(set(footballer_ids)) != len(footballer_ids):
         raise ValueError(
             "Стартовый набор не должен содержать повторяющихся футболистов"
         )
 
-    return reward_ids
+    return validated_rewards
 
 
 def _validate_chest_ids(chest_ids: Sequence[int]) -> list[int]:
@@ -183,7 +193,7 @@ async def get_user_start_chests(
 async def get_start_chest_rewards(
     db: AsyncSession,
     user_id: int,
-) -> list[tuple[int, datetime | None, Footballer]]:
+) -> list[tuple[int, datetime | None, int | None, Footballer]]:
     """Return the footballers already assigned to starter chests."""
 
     _validate_positive_id(user_id, "user_id")
@@ -191,6 +201,7 @@ async def get_start_chest_rewards(
         select(
             UserChest.id,
             UserChest.revealed_at,
+            ChestReward.character_type_id,
             Footballer,
         )
         .join(ChestReward, ChestReward.chest_id == UserChest.id)
@@ -204,8 +215,8 @@ async def get_start_chest_rewards(
     )
     rows = (await db.execute(statement)).all()
     return [
-        (chest_id, revealed_at, footballer)
-        for chest_id, revealed_at, footballer in rows
+        (chest_id, revealed_at, character_type_id, footballer)
+        for chest_id, revealed_at, character_type_id, footballer in rows
     ]
 
 
@@ -266,17 +277,21 @@ async def mark_chests_as_revealed(
 async def open_all_available_chests(
     db: AsyncSession,
     user_id: int,
-    footballer_ids: Sequence[int],
+    start_rewards: Sequence[tuple[int, int | None]],
 ) -> list[ChestReward]:
     """Assign rewards and atomically open all 11 starter chests."""
 
     _validate_positive_id(user_id, "user_id")
-    reward_ids = _validate_start_reward_ids(footballer_ids)
+    validated_rewards = _validate_start_rewards(start_rewards)
+    footballer_ids = [
+        footballer_id
+        for footballer_id, _ in validated_rewards
+    ]
     opened_at = datetime.now(UTC)
 
     footballers_count = (
         select(func.count(Footballer.id))
-        .where(Footballer.id.in_(reward_ids))
+        .where(Footballer.id.in_(footballer_ids))
         .scalar_subquery()
     )
     reward_exists = (
@@ -329,10 +344,11 @@ async def open_all_available_chests(
                     {
                         "chest_id": chest_id,
                         "footballer_id": footballer_id,
+                        "character_type_id": character_type_id,
                     }
-                    for chest_id, footballer_id in zip(
+                    for chest_id, (footballer_id, character_type_id) in zip(
                         chest_ids,
-                        reward_ids,
+                        validated_rewards,
                         strict=True,
                     )
                 ]

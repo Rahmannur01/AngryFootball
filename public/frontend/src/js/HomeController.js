@@ -17,20 +17,31 @@ const POSITION_LABELS = {
     }
 };
 
-const IDENTITY_REVEAL_DELAY = 1000;
+const IDENTITY_REVEAL_DELAY = 350;
 const PHOTO_LOAD_TIMEOUT = 5000;
+const START_PACK_SIZE = 11;
+const ROSTER_GROUPS = [
+    { key: 'Goalkeeper', title: 'Вратари' },
+    { key: 'Defender', title: 'Защитники' },
+    { key: 'Midfielder', title: 'Полузащитники' },
+    { key: 'Attacker', title: 'Нападающие' }
+];
 
 export class HomeController {
     constructor({
         vue,
         authApi,
         chestsApi,
+        teamApi,
+        playerPortraits,
         session,
         location = window.location
     }) {
         this.vue = vue;
         this.authApi = authApi;
         this.chestsApi = chestsApi;
+        this.teamApi = teamApi;
+        this.playerPortraits = playerPortraits;
         this.session = session;
         this.location = location;
         this.revealTimerId = null;
@@ -38,6 +49,7 @@ export class HomeController {
         this.state = vue.reactive({
             isLoading: true,
             isProfileMenuOpen: false,
+            isRosterVisible: false,
             user: null,
             chests: [],
             roster: [],
@@ -69,11 +81,40 @@ export class HomeController {
     }
 
     get visiblePlayers() {
-        return this.state.roster.slice(0, 5);
+        return this.state.roster.slice(0, 4);
     }
 
-    get emptySquadSlots() {
-        return Math.max(0, 5 - this.visiblePlayers.length);
+    get emptyPreviewSlots() {
+        return Math.max(0, 4 - this.visiblePlayers.length);
+    }
+
+    get additionalPlayersCount() {
+        return Math.max(0, this.state.roster.length - 4);
+    }
+
+    get additionalPlayersLabel() {
+        const count = this.additionalPlayersCount;
+        const lastDigit = count % 10;
+        const lastTwoDigits = count % 100;
+
+        if (lastDigit === 1 && lastTwoDigits !== 11) {
+            return 'игрок';
+        }
+
+        if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)) {
+            return 'игрока';
+        }
+
+        return 'игроков';
+    }
+
+    get rosterGroups() {
+        return ROSTER_GROUPS.map((group) => ({
+            ...group,
+            players: this.state.roster.filter(
+                (player) => player.positionKey === group.key
+            )
+        }));
     }
 
     get squadStatus() {
@@ -117,7 +158,10 @@ export class HomeController {
 
         try {
             this.state.user = await this.authApi.getProfile(token);
-            await this.refreshChests(token);
+            await Promise.all([
+                this.refreshChests(token),
+                this.refreshTeam(token)
+            ]);
         } catch (error) {
             if (this.handleUnauthorized(error)) return;
 
@@ -135,6 +179,13 @@ export class HomeController {
         this.applyChestState(response.chests || []);
     }
 
+    async refreshTeam(token = this.session.getToken()) {
+        const footballers = await this.teamApi.getPlayers(token);
+        this.state.roster = footballers.map(
+            (footballer) => this.normalizeFootballer(footballer)
+        );
+    }
+
     applyChestState(chests) {
         const orderedChests = [...chests].sort(
             (left, right) => left.id - right.id
@@ -147,7 +198,7 @@ export class HomeController {
         this.state.chest.pendingCount = orderedChests.filter(
             (chest) => chest.status === 'opened' && !chest.revealed_at
         ).length;
-        this.state.chest.isComplete = orderedChests.length > 0
+        this.state.chest.isComplete = orderedChests.length === START_PACK_SIZE
             && orderedChests.every(
                 (chest) => chest.status === 'opened'
                     && Boolean(chest.revealed_at)
@@ -170,6 +221,15 @@ export class HomeController {
 
     toggleProfileMenu() {
         this.state.isProfileMenuOpen = !this.state.isProfileMenuOpen;
+    }
+
+    openRoster() {
+        this.state.isProfileMenuOpen = false;
+        this.state.isRosterVisible = true;
+    }
+
+    closeRoster() {
+        this.state.isRosterVisible = false;
     }
 
     logout() {
@@ -246,7 +306,7 @@ export class HomeController {
 
         this.state.reveal.isIdentityVisible = false;
         this.state.reveal.isDelayElapsed = false;
-        this.state.reveal.isPhotoReady = !player.photo || player.imageFailed;
+        this.state.reveal.isPhotoReady = !player.portrait || player.imageFailed;
         this.preloadNextRewardPhoto();
 
         const delay = this.prefersReducedMotion()
@@ -274,13 +334,13 @@ export class HomeController {
         ];
         const ImageConstructor = globalThis.Image;
 
-        if (!nextPlayer?.photo || typeof ImageConstructor !== 'function') {
+        if (!nextPlayer?.portrait || typeof ImageConstructor !== 'function') {
             return;
         }
 
         const image = new ImageConstructor();
         image.decoding = 'async';
-        image.src = nextPlayer.photo;
+        image.src = nextPlayer.portrait;
     }
 
     prefersReducedMotion() {
@@ -301,10 +361,7 @@ export class HomeController {
     }
 
     revealCurrentIdentity() {
-        if (
-            this.state.reveal.isDelayElapsed
-            && this.state.reveal.isPhotoReady
-        ) {
+        if (this.state.reveal.isDelayElapsed) {
             this.state.reveal.isIdentityVisible = true;
         }
     }
@@ -357,7 +414,7 @@ export class HomeController {
 
     addPlayerToRoster(player) {
         const playerExists = this.state.roster.some(
-            (rosterPlayer) => rosterPlayer.chestId === player.chestId
+            (rosterPlayer) => rosterPlayer.id === player.id
         );
 
         if (!playerExists) {
@@ -379,23 +436,38 @@ export class HomeController {
 
     normalizeReward(reward) {
         const footballer = reward.footballer || {};
+        return {
+            ...this.normalizeFootballer(
+                footballer,
+                reward.character_type_id
+            ),
+            chestId: reward.chest_id
+        };
+    }
+
+    normalizeFootballer(
+        footballer,
+        characterTypeId = footballer.character_type_id
+    ) {
         const position = POSITION_LABELS[footballer.position] || {
             label: footballer.position || 'Позиция не указана',
             short: '—'
         };
         const name = footballer.name_ru || footballer.name_en || 'Футболист';
-        const photo = typeof footballer.photo === 'string'
-            ? footballer.photo.trim()
-            : '';
+        const portrait = this.playerPortraits.getPortrait(
+            characterTypeId,
+            footballer.position
+        );
 
         return {
-            chestId: reward.chest_id,
             id: footballer.id,
             name,
+            characterTypeId: characterTypeId ?? null,
+            positionKey: footballer.position,
             position: position.label,
             shortPosition: position.short,
             number: footballer.number ?? '—',
-            photo: photo || null,
+            portrait,
             imageFailed: false,
             initials: this.createInitials(name)
         };
@@ -413,7 +485,10 @@ export class HomeController {
     handlePlayerImageError(player) {
         player.imageFailed = true;
 
-        if (player.chestId === this.currentReward?.chestId) {
+        if (
+            player.chestId !== undefined
+            && player.chestId === this.currentReward?.chestId
+        ) {
             if (this.photoTimerId !== null) {
                 globalThis.clearTimeout(this.photoTimerId);
                 this.photoTimerId = null;
@@ -455,13 +530,18 @@ export class HomeController {
             state: this.state,
             displayName: this.vue.computed(() => this.displayName),
             visiblePlayers: this.vue.computed(() => this.visiblePlayers),
-            emptySquadSlots: this.vue.computed(() => this.emptySquadSlots),
+            emptyPreviewSlots: this.vue.computed(() => this.emptyPreviewSlots),
+            additionalPlayersCount: this.vue.computed(() => this.additionalPlayersCount),
+            additionalPlayersLabel: this.vue.computed(() => this.additionalPlayersLabel),
+            rosterGroups: this.vue.computed(() => this.rosterGroups),
             squadStatus: this.vue.computed(() => this.squadStatus),
             isChestReceived: this.isChestReceived.bind(this),
             chestButtonLabel: this.vue.computed(() => this.chestButtonLabel),
             currentReward: this.vue.computed(() => this.currentReward),
             rewardButtonLabel: this.vue.computed(() => this.rewardButtonLabel),
             toggleProfileMenu: this.toggleProfileMenu.bind(this),
+            openRoster: this.openRoster.bind(this),
+            closeRoster: this.closeRoster.bind(this),
             logout: this.logout.bind(this),
             openChest: this.openChest.bind(this),
             showNextReward: this.showNextReward.bind(this),

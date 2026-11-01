@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 import backend.modules.model_registry  # Registers every ORM model.
 from backend.modules.auth.router import router as auth_router
 from backend.modules.chests.router import router as chests_router
+from backend.modules.team.router import router as team_router
 
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
@@ -36,6 +37,7 @@ app.mount(
 )
 app.include_router(auth_router)
 app.include_router(chests_router)
+app.include_router(team_router)
 
 
 @app.get("/")

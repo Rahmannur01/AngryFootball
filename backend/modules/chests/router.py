@@ -75,9 +75,10 @@ async def open_start_pack(db: DBSession, current_user: CurrentUser) -> chests_sc
             chests_schemas.StarterChestReward(
                 chest_id=chest_id,
                 revealed_at=revealed_at,
+                character_type_id=character_type_id,
                 footballer=footballer,
             )
-            for chest_id, revealed_at, footballer in rewards
+            for chest_id, revealed_at, character_type_id, footballer in rewards
         ]
     )
 

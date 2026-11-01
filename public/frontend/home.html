@@ -56,7 +56,11 @@
             </section>
 
             <section class="primary-grid" aria-label="Игровые разделы">
-                <article class="chest-card" :class="{ 'chest-card--open': state.chest.isOpen }">
+                <article
+                    v-if="!state.chest.isComplete"
+                    class="chest-card"
+                    :class="{ 'chest-card--open': state.chest.isOpen }"
+                >
                     <div class="chest-copy">
                         <p class="eyebrow">Стартовый пак</p>
                         <h2>11 стартовых сундуков</h2>
@@ -119,22 +123,43 @@
                             class="mini-player"
                         >
                             <span class="mini-player__position">{{ player.shortPosition }}</span>
+                            <div class="mini-player__portrait">
+                                <img
+                                    v-if="player.portrait && !player.imageFailed"
+                                    :src="player.portrait"
+                                    :alt="`Фотография ${player.name}`"
+                                    loading="lazy"
+                                    decoding="async"
+                                    referrerpolicy="no-referrer"
+                                    @error="handlePlayerImageError(player)"
+                                >
+                                <span v-else aria-hidden="true">{{ player.initials }}</span>
+                            </div>
                             <strong class="mini-player__name">{{ player.name }}</strong>
                             <span class="mini-player__number">№ {{ player.number }}</span>
                         </div>
                         <div
-                            v-for="slot in emptySquadSlots"
+                            v-for="slot in emptyPreviewSlots"
                             :key="`empty-${slot}`"
                             class="mini-player mini-player--empty"
                             aria-hidden="true"
                         >
                             <span>+</span>
                         </div>
+                        <div
+                            class="mini-player mini-player--more"
+                            :aria-label="`Ещё ${additionalPlayersCount} ${additionalPlayersLabel}`"
+                        >
+                            <strong class="mini-player__more-count">+{{ additionalPlayersCount }}</strong>
+                            <span class="mini-player__more-label">{{ additionalPlayersLabel }}</span>
+                        </div>
                     </div>
 
                     <div class="card-footer">
                         <span>{{ squadStatus }}</span>
-                        <button class="text-button" type="button">Собрать состав</button>
+                        <button class="text-button" type="button" @click="openRoster">
+                            Мой состав
+                        </button>
                     </div>
                 </article>
 
@@ -159,6 +184,70 @@
                     </div>
                 </article>
             </section>
+        </div>
+
+        <div
+            v-if="state.isRosterVisible"
+            class="roster-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="roster-dialog-title"
+            @click.self="closeRoster"
+        >
+            <article class="roster-dialog__panel">
+                <header class="roster-dialog__header">
+                    <div>
+                        <p class="eyebrow">Команда игрока</p>
+                        <h2 id="roster-dialog-title">Мой состав</h2>
+                    </div>
+                    <div class="roster-dialog__actions">
+                        <span class="counter">{{ state.roster.length }} / 11</span>
+                        <button type="button" aria-label="Закрыть состав" @click="closeRoster">
+                            Закрыть
+                        </button>
+                    </div>
+                </header>
+
+                <div class="roster-groups">
+                    <section
+                        v-for="group in rosterGroups"
+                        :key="group.key"
+                        class="roster-group"
+                        :aria-labelledby="`roster-group-${group.key}`"
+                    >
+                        <header class="roster-group__header">
+                            <h3 :id="`roster-group-${group.key}`">{{ group.title }}</h3>
+                            <span>{{ group.players.length }}</span>
+                        </header>
+
+                        <div v-if="group.players.length" class="roster-group__players">
+                            <article
+                                v-for="player in group.players"
+                                :key="player.id"
+                                class="roster-player"
+                            >
+                                <div class="roster-player__portrait">
+                                    <img
+                                        v-if="player.portrait && !player.imageFailed"
+                                        :src="player.portrait"
+                                        :alt="`Фотография ${player.name}`"
+                                        loading="lazy"
+                                        decoding="async"
+                                        referrerpolicy="no-referrer"
+                                        @error="handlePlayerImageError(player)"
+                                    >
+                                    <span v-else aria-hidden="true">{{ player.initials }}</span>
+                                </div>
+                                <div class="roster-player__info">
+                                    <strong>{{ player.name }}</strong>
+                                    <span>{{ player.position }} · № {{ player.number }}</span>
+                                </div>
+                            </article>
+                        </div>
+                        <p v-else class="roster-group__empty">Пока нет игроков</p>
+                    </section>
+                </div>
+            </article>
         </div>
 
         <div
@@ -193,37 +282,34 @@
                         'reward-reveal__photo--ready': state.reveal.isPhotoReady
                     }"
                 >
-                    <img
-                        v-if="currentReward.photo && !currentReward.imageFailed"
-                        :src="currentReward.photo"
-                        :alt="`Фотография ${currentReward.name}`"
-                        decoding="async"
-                        fetchpriority="high"
-                        referrerpolicy="no-referrer"
-                        @load="handleRewardImageLoad(currentReward)"
-                        @error="handlePlayerImageError(currentReward)"
-                    >
-                    <span
-                        v-if="!state.reveal.isIdentityVisible"
-                        class="reward-reveal__mystery"
-                        aria-hidden="true"
-                    >
-                        ?
-                    </span>
-                    <span
-                        v-else-if="!currentReward.photo || currentReward.imageFailed"
-                        class="reward-reveal__initials"
-                        aria-hidden="true"
-                    >
-                        {{ currentReward.initials }}
-                    </span>
-                    <span
-                        v-else-if="!state.reveal.isPhotoReady"
-                        class="reward-reveal__loading-photo"
-                        aria-hidden="true"
-                    >
-                        Загружаем фото…
-                    </span>
+                    <div class="reward-reveal__portrait">
+                        <img
+                            v-if="currentReward.portrait && !currentReward.imageFailed"
+                            :src="currentReward.portrait"
+                            :alt="`Фотография ${currentReward.name}`"
+                            decoding="async"
+                            fetchpriority="high"
+                            referrerpolicy="no-referrer"
+                            @load="handleRewardImageLoad(currentReward)"
+                            @error="handlePlayerImageError(currentReward)"
+                        >
+                        <span
+                            v-if="!state.reveal.isIdentityVisible"
+                            class="reward-reveal__mystery"
+                            aria-hidden="true"
+                        >
+                            ?
+                        </span>
+                        <span
+                            v-else-if="!currentReward.portrait
+                                || currentReward.imageFailed
+                                || !state.reveal.isPhotoReady"
+                            class="reward-reveal__initials"
+                            aria-hidden="true"
+                        >
+                            {{ currentReward.initials }}
+                        </span>
+                    </div>
                 </div>
 
                 <div class="reward-reveal__body">
@@ -269,7 +355,7 @@
             <a class="mobile-nav__item mobile-nav__item--active" href="./home.html">
                 Штаб
             </a>
-            <button class="mobile-nav__item" type="button">
+            <button class="mobile-nav__item" type="button" @click="openRoster">
                 Команда
             </button>
             <a class="mobile-nav__item" href="../game/bus_constructor/index.html">

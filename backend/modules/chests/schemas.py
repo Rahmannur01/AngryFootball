@@ -31,6 +31,7 @@ class ChestsResponse(BaseModel):
 class StarterChestReward(BaseModel):
     chest_id: int
     revealed_at: datetime | None
+    character_type_id: PositiveInt | None
     footballer: Footballer
 
 

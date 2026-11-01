@@ -88,6 +88,7 @@ class ChestReward(Base):
         ForeignKey("footballers.id"),
         index=True,
     )
+    character_type_id: Mapped[int | None] = mapped_column(default=None)
     chest: Mapped[UserChest] = relationship(
         back_populates="reward",
     )
