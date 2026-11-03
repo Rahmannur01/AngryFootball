@@ -1,13 +1,13 @@
-const menuOverlay = document.getElementById('menu-overlay');
 const rotateOverlay = document.getElementById('rotate-overlay');
-const playButton = document.getElementById('play-btn');
 const gameContainer = document.getElementById('game-container');
+const gameLoading = document.getElementById('game-loading');
 const fullscreenButton = document.getElementById('fullscreen-btn');
 
 let lastViewportWidth = 0;
 let lastViewportHeight = 0;
 let viewportStabilizationFrame = null;
 let viewportStabilizationUntil = 0;
+let gameStarted = false;
 
 // =========================================================
 // SCREEN
@@ -74,9 +74,7 @@ async function lockLandscape() {
 // =========================================================
 
 function updateOrientation() {
-    const isMenuOpen = menuOverlay.style.display !== 'none';
-
-    if (!isMenuOpen && isPortrait()) {
+    if (gameStarted && isPortrait()) {
         rotateOverlay.style.display = 'flex';
     }
     else {
@@ -179,30 +177,28 @@ function waitForViewport() {
 
 
 // =========================================================
-// PLAY
+// START
 // =========================================================
 
-playButton.addEventListener(
-    'click',
-    async () => {
-        playButton.disabled = true;
-        playButton.textContent = 'Загрузка…';
-        try {
-            await requestFullscreen();
-            await lockLandscape();
-            updateOrientation();
-            await waitForViewport();
-            await window.startBusGame();
-            resizeGame();
-            menuOverlay.style.display = 'none';
-            updateOrientation();
-        } catch (error) {
-            console.error('Ошибка запуска игры:', error);
-            playButton.textContent = 'Ошибка загрузки — повторить';
-            playButton.disabled = false;
-        }
+async function startGame() {
+    try {
+        await requestFullscreen();
+        await lockLandscape();
+        await waitForViewport();
+        await window.startBusGame();
+
+        gameStarted = true;
+        gameLoading.hidden = true;
+        resizeGame();
+        updateOrientation();
+    } catch (error) {
+        console.error('Ошибка запуска игры:', error);
+        gameLoading.textContent = error instanceof Error
+            ? `Ошибка загрузки: ${error.message}`
+            : 'Не удалось запустить игру';
+        gameLoading.classList.add('game-loading--error');
     }
-);
+}
 
 
 
@@ -289,6 +285,7 @@ document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 updateFullscreenButton();
 syncViewportSize();
 updateOrientation();
+startGame();
 
 // =========================================================
 // RESIZE OBSERVER

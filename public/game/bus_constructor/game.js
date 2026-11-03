@@ -23,7 +23,18 @@ class BusScene extends Phaser.Scene {
         this.lineup = null;
         this.busManager = null;
         this.busSceneUI = null;
-        this.playerTypesList = [1, 2, 2, 1, 3, 4, 7, 6, 7, 6];
+        this.teamPlayers = Array.isArray(window.USER_TEAM_PLAYERS)
+            ? window.USER_TEAM_PLAYERS
+            : [];
+        this.fieldPlayers = this.teamPlayers
+            .filter(player => player.position !== 'Goalkeeper')
+            .filter(player => (
+                Number.isInteger(player.character_type_id) &&
+                player.character_type_id > 0
+            ))
+            .slice(0, BusScene.MAX_PLAYERS_COUNT);
+        this.playerTypesList = this.fieldPlayers
+            .map(player => player.character_type_id);
         this.busTest = null;
     }
 
@@ -81,8 +92,8 @@ class BusScene extends Phaser.Scene {
             this.lineup.selectPlayer(type, cardId);
         };
 
-        this.busSceneUI.drawPortraits(
-            this.playerTypesList
+        this.busSceneUI.drawPlayers(
+            this.fieldPlayers
         );
         this.busManager = new BusManager(
             this,

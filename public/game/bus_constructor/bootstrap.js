@@ -1,5 +1,7 @@
 window.GAME_DPR = Math.min(window.devicePixelRatio || 1, 1.5);
 
+const ACCESS_TOKEN_STORAGE_KEY = 'angry-football.access-token';
+
 function getGameSize() {
     const container = document.getElementById('game-container');
     const rect = container.getBoundingClientRect();
@@ -41,18 +43,56 @@ async function fetchJSON(url) {
     return response.json();
 }
 
+async function fetchTeamPlayers() {
+    let accessToken = null;
+
+    try {
+        accessToken = window.sessionStorage.getItem(
+            ACCESS_TOKEN_STORAGE_KEY
+        );
+    } catch {
+        // The request below will report that authorization is unavailable.
+    }
+
+    if (!accessToken) {
+        throw new Error('Для загрузки состава требуется авторизация');
+    }
+
+    const response = await fetch('/api/team/players', {
+        headers: {
+            Authorization: `Bearer ${accessToken}`
+        },
+        cache: 'no-store'
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+        const message = typeof payload?.detail === 'string'
+            ? payload.detail
+            : `Не удалось загрузить состав: HTTP ${response.status}`;
+        throw new Error(message);
+    }
+    if (!Array.isArray(payload)) {
+        throw new Error('Сервер вернул некорректный состав');
+    }
+
+    return payload;
+}
+
 let startPromise = null;
 
 window.startBusGame = function () {
     if (startPromise) return startPromise;
 
     startPromise = (async () => {
-        const [scenesData, playerRagdoll] = await Promise.all([
+        const [scenesData, playerRagdoll, teamPlayers] = await Promise.all([
             fetchJSON('./scenes_data.json'),
-            fetchJSON('./Player_ragdoll.json')
+            fetchJSON('./Player_ragdoll.json'),
+            fetchTeamPlayers()
         ]);
         window.SCENES_DATA = scenesData;
         window.PLAYER_RAGDOLL = playerRagdoll;
+        window.USER_TEAM_PLAYERS = teamPlayers;
 
         await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {

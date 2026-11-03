@@ -1,6 +1,14 @@
+const GAME_POSITION_LABELS = Object.freeze({
+    Goalkeeper: 'Вратарь',
+    Defender: 'Защитник',
+    Midfielder: 'Полузащитник',
+    Attacker: 'Нападающий'
+});
+
 class BusSceneUI {
     constructor() {
         this.playerTypesPortraitPath = {};
+        this.playersList = [];
         this.playerTypesList = [];
 
         this.portraitElements = document.getElementsByClassName('player-photo');
@@ -58,11 +66,15 @@ class BusSceneUI {
     }
 
 
-    drawPortraits(types) {
-        this.playerTypesList = types;
+    drawPlayers(players) {
+        this.playersList = Array.isArray(players) ? players : [];
+        this.playerTypesList = this.playersList.map(
+            player => player.character_type_id
+        );
 
-        for (let i = 0; i < this.playerTypesList.length; i++) {
-            const type = this.playerTypesList[i];
+        for (let i = 0; i < this.playersList.length; i++) {
+            const player = this.playersList[i];
+            const type = player.character_type_id;
             const element = this.portraitElements[i];
             if (!element) {
                 break;
@@ -75,6 +87,7 @@ class BusSceneUI {
             if (!card) {
                 continue;
             }
+            this.drawPlayerDetails(player, card);
             card.onclick = () => {
                 // Если игрок уже использован
                 if (!element.querySelector('img')) {
@@ -90,11 +103,34 @@ class BusSceneUI {
         }
     }
 
+    drawPlayerDetails(player, card) {
+        let details = card.querySelector('.player-card__details');
+
+        if (!details) {
+            details = document.createElement('div');
+            details.className = 'player-card__details';
+            details.innerHTML = `
+                <strong class="player-card__name"></strong>
+                <span class="player-card__position"></span>
+            `;
+            card.append(details);
+        }
+
+        const name = player.name_ru || player.name_en || 'Игрок';
+        const position = GAME_POSITION_LABELS[player.position]
+            || player.position
+            || 'Без позиции';
+
+        details.querySelector('.player-card__name').textContent = name;
+        details.querySelector('.player-card__position').textContent = position;
+        card.title = `${name} · ${position}`;
+    }
+
     reloadPortraits() {
         this.currentPlayerType = -1;
         this.currentClickedCard = null;
         this.clearSelection();
-        this.drawPortraits(this.playerTypesList);
+        this.drawPlayers(this.playersList);
     }
 
 

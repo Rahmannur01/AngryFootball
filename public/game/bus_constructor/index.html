@@ -37,6 +37,10 @@
                         К настройке
                     </button>
 
+                    <a id="home-btn" class="game-button" href="/static/frontend/home.html"
+                        aria-label="Вернуться на главную страницу" title="На главную">
+                        ←
+                    </a>
                     <button id="fullscreen-btn" class="game-button" type="button"
                         aria-label="Переключить полный экран" title="Полный экран">
                         ⛶
@@ -121,24 +125,9 @@
 
         </div>
     </div>
-    <div id="menu-overlay">
-
-        <div class="menu-card">
-
-            <h1 class="menu-title">
-                Angry Football
-            </h1>
-
-            <div class="menu-actions">
-                <button id="play-btn" class="play-btn" type="button">
-                    Играть
-                </button>
-            </div>
-
-        </div>
-
+    <div id="game-loading" role="status" aria-live="polite">
+        Загрузка…
     </div>
-
 
     <!-- PHONE ROTATION -->
     <div id="rotate-overlay" role="dialog" aria-modal="true" aria-labelledby="rotate-message">

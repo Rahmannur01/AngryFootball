@@ -2,7 +2,13 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, ForeignKey, Index, UniqueConstraint
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.database import Base
@@ -27,6 +33,7 @@ class UserFootballer(Base):
         default=None,
     )
     character_type_id: Mapped[int | None] = mapped_column(default=None)
+    slot_id: Mapped[int | None] = mapped_column(default=None)
     acquired_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
@@ -44,6 +51,15 @@ class UserFootballer(Base):
         UniqueConstraint(
             "source_chest_id",
             name="uq_user_footballers_source_chest_id",
+        ),
+        UniqueConstraint(
+            "user_id",
+            "slot_id",
+            name="uq_user_footballers_user_id_slot_id",
+        ),
+        CheckConstraint(
+            "slot_id IS NULL OR slot_id BETWEEN 1 AND 10",
+            name="ck_user_footballers_slot_id_range",
         ),
         Index(
             "ix_user_footballers_user_id_acquired_at",
