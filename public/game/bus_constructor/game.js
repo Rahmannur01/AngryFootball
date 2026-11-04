@@ -18,11 +18,21 @@ class BusScene extends Phaser.Scene {
         };
     }
     init(data) {
-        this.initialBusKey = data?.busKey || BUS_KEYS[0];
+        const initialBusId = data?.busId ?? window.USER_BUS_ID;
+        this.initialBusKey = BUS_KEYS.find(
+            key => window.SCENES_DATA[key]?.id === initialBusId
+        );
+        if (!this.initialBusKey) {
+            throw new Error(
+                `Автобус с id=${initialBusId} отсутствует в scenes_data.json`
+            );
+        }
 
         this.lineup = null;
         this.busManager = null;
         this.busSceneUI = null;
+        this.gameApi = new GameApi();
+        this.busChangePending = false;
         this.teamPlayers = Array.isArray(window.USER_TEAM_PLAYERS)
             ? window.USER_TEAM_PLAYERS
             : [];
@@ -85,11 +95,28 @@ class BusScene extends Phaser.Scene {
         });
 
         this.lineup = new LineupController(this, this.busSceneUI, {
-            canEdit: () => !this.busTest?.active,
-            maxPlayers: BusScene.MAX_PLAYERS_COUNT
+            canEdit: () => (
+                !this.busTest?.active &&
+                !this.busChangePending
+            ),
+            maxPlayers: BusScene.MAX_PLAYERS_COUNT,
+            savePlayerSlot: (footballerId, slotId) => (
+                this.gameApi.setFootballerSlot(footballerId, slotId)
+            ),
+            saveLineupSlots: players => (
+                this.gameApi.saveLineupSlots(players)
+            ),
+            clearPlayerSlot: footballerId => (
+                this.gameApi.clearFootballerSlot(footballerId)
+            )
         });
-        this.busSceneUI.onCardSelected = (type, card, cardId) => {
-            this.lineup.selectPlayer(type, cardId);
+        this.busSceneUI.onCardSelected = (
+            type,
+            card,
+            cardId,
+            footballerId
+        ) => {
+            this.lineup.selectPlayer(type, cardId, footballerId);
         };
 
         this.busSceneUI.drawPlayers(
@@ -109,6 +136,10 @@ class BusScene extends Phaser.Scene {
         this.cameraManager.setup();
         this.loadBus(
             this.initialBusKey
+        );
+        this.lineup.restoreSavedLineup(
+            this.fieldPlayers,
+            this.busManager.getObjects()
         );
         this.footballGoal = new FootballGoal(this);
         this.busTest = new BusTestController(this, {
@@ -155,13 +186,33 @@ class BusScene extends Phaser.Scene {
 
         this.focusCameraOnBus();
     }
-    switchNextBus() {
-        if (this.busTest.active) return;
+    async switchNextBus() {
+        if (
+            this.busTest.active ||
+            this.busChangePending ||
+            this.lineup?.isBusy
+        ) return false;
 
-        this.lineup?.clearPlayers();
-        this.busManager.loadNext();
-        this.busSceneUI.reloadPortraits();
-        this.focusCameraOnBus();
+        const nextKey = this.busManager.getNextKey();
+        const nextBusId = this.busManager.getId(nextKey);
+
+        this.busChangePending = true;
+        this.busSceneUI.setBusChangePending(true);
+
+        try {
+            await this.gameApi.saveBus(nextBusId);
+
+            this.lineup?.clearPlayers(true);
+            this.busManager.load(nextKey);
+            this.focusCameraOnBus();
+            return true;
+        } catch (error) {
+            console.error('Не удалось сменить автобус:', error);
+            return false;
+        } finally {
+            this.busChangePending = false;
+            this.busSceneUI.setBusChangePending(false);
+        }
     }
 
     switchPreviousBus() {
@@ -183,7 +234,7 @@ class BusScene extends Phaser.Scene {
 
         return this.lineup.randomize(
             this.busManager.getObjects(),
-            this.playerTypesList
+            this.fieldPlayers
         );
     }
     focusCameraOnBus() {

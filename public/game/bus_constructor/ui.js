@@ -25,7 +25,7 @@ class BusSceneUI {
         this.currentPlayerType = -1;
         this.currentClickedCard = null;
 
-        // Вызывается при клике на карточку: (type, card)
+        // Вызывается при клике: (type, card, cardId, footballerId)
         this.onCardSelected = null;
         this.actionHandlers = {};
 
@@ -53,6 +53,22 @@ class BusSceneUI {
 
     setActionHandlers(handlers) {
         this.actionHandlers = { ...handlers };
+    }
+
+    setBusChangePending(pending) {
+        this.changeBusButton.disabled = pending;
+        this.randomLineupButton.disabled = pending;
+        this.changeBusButton.textContent = pending
+            ? 'Сохранение…'
+            : 'Сменить каркас';
+    }
+
+    setRandomLineupPending(pending) {
+        this.randomLineupButton.disabled = pending;
+        this.changeBusButton.disabled = pending;
+        this.randomLineupButton.textContent = pending
+            ? 'Сохранение…'
+            : 'Случайный состав';
     }
 
 
@@ -97,7 +113,7 @@ class BusSceneUI {
                 this.currentClickedCard = card;
                 this.clickedCard(card);
                 if (this.onCardSelected) {
-                    this.onCardSelected(type, card, i);
+                    this.onCardSelected(type, card, i, player.id);
                 }
             };
         }

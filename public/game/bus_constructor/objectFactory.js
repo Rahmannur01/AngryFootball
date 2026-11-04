@@ -34,6 +34,7 @@ function createObjectsFromJSON(scene, sceneData) {
 
         if (cfg.tag !== undefined) {
             obj.tag = cfg.tag;
+            if (cfg.slotId !== undefined) obj.slotId = cfg.slotId;
             if (cfg.interactive && scene.tagHandlers && scene.tagHandlers[cfg.tag]) {
                 obj.on('pointerdown', (pointer) => scene.tagHandlers[cfg.tag](obj, cfg, pointer));
             }

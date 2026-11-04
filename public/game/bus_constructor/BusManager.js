@@ -21,16 +21,17 @@ class BusManager {
     }
 
     loadNext() {
+        return this.load(this.getNextKey());
+    }
+
+    getNextKey() {
         const currentIndex =
             this.busKeys.indexOf(this.currentKey);
 
         const nextIndex =
             (currentIndex + 1) % this.busKeys.length;
 
-        const nextKey =
-            this.busKeys[nextIndex];
-
-        return this.load(nextKey);
+        return this.busKeys[nextIndex];
     }
 
     loadPrevious() {
@@ -80,6 +81,15 @@ class BusManager {
 
     getCurrentKey() {
         return this.currentKey;
+    }
+
+    getCurrentId() {
+        return this.getId(this.currentKey);
+    }
+
+    getId(key) {
+        const busId = window.SCENES_DATA[key]?.id;
+        return Number.isInteger(busId) ? busId : null;
     }
 
     getObjects() {
