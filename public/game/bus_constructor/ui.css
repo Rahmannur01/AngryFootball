@@ -200,18 +200,24 @@ body {
 .player-card__position {
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .player-card__name {
+    display: -webkit-box;
     font-size: clamp(8px, 0.75vw, 11px);
     font-weight: 800;
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 }
 
 .player-card__position {
     color: #f0c94a;
     font-size: clamp(7px, 0.65vw, 10px);
     font-weight: 650;
+    white-space: nowrap;
 }
 
 #game-loading {
@@ -663,8 +669,8 @@ body {
     }
 
     .player-card {
-        width: 46px;
-        height: 58px;
+        width: 60px;
+        height: 72px;
     }
 
     #top-controls {

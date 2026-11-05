@@ -2,6 +2,7 @@ import { AuthApi } from './AuthApi.js';
 import { AuthSession } from './AuthSession.js';
 import { ChestsApi } from './ChestsApi.js';
 import { HomeController } from './HomeController.js';
+import { LineupApi } from './LineupApi.js';
 import { PlayerPortraits } from './PlayerPortraits.js';
 import { TeamApi } from './TeamApi.js';
 
@@ -18,6 +19,7 @@ export class HomeApplication {
             authApi: new AuthApi(),
             chestsApi: new ChestsApi(),
             teamApi: new TeamApi(),
+            lineupApi: new LineupApi(),
             playerPortraits: new PlayerPortraits(),
             session: new AuthSession()
         });

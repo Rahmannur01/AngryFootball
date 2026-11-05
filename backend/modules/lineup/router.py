@@ -7,6 +7,7 @@ from backend.modules.auth import schemas as auth_schemas
 from backend.modules.auth import service as auth_service
 from backend.modules.catalog import schemas as catalog_schemas
 from backend.modules.lineup import repository
+from backend.modules.lineup import rules
 from backend.modules.lineup import schemas as lineup_schemas
 from backend.modules.lineup import service as lineup_service
 from backend.modules.team import repository as team_repository
@@ -81,6 +82,46 @@ async def get_initial_lineup(
     return lineup_schemas.InitialLineupResponse(
         bus_id=user_bus.bus_id,
         players=players,
+    )
+
+
+@router.get(
+    "/summary",
+    response_model=lineup_schemas.LineupSummaryResponse,
+)
+async def get_lineup_summary(
+    db: DBSession,
+    current_user: CurrentUser,
+) -> lineup_schemas.LineupSummaryResponse:
+    try:
+        user_bus, placed_players = (
+            await lineup_service.get_lineup_summary(
+                db,
+                current_user.id,
+            )
+        )
+    except repository.InvalidUserBusDataError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(error),
+        ) from error
+    except repository.BusNotFoundError as error:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Автобус по умолчанию не настроен.",
+        ) from error
+    except repository.LineupRepositoryError as error:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Не удалось получить готовность расстановки.",
+        ) from error
+
+    required_players = rules.MAX_LINEUP_SIZE
+    return lineup_schemas.LineupSummaryResponse(
+        bus_id=user_bus.bus_id,
+        placed_players=placed_players,
+        required_players=required_players,
+        is_ready=placed_players == required_players,
     )
 
 

@@ -7,6 +7,12 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 import backend.modules.model_registry  # Registers every ORM model.
+from backend.core.config import settings
+from backend.core.logging import (
+    RequestLoggingMiddleware,
+    configure_logging,
+    logger,
+)
 from backend.modules.auth.router import router as auth_router
 from backend.modules.chests.router import router as chests_router
 from backend.modules.lineup.router import router as lineup_router
@@ -19,17 +25,34 @@ PUBLIC_DIR = PROJECT_DIR / "public"
 from backend.database import Base, engine
 
 
+configure_logging(
+    level=settings.log_level,
+    log_file=settings.log_file,
+    max_bytes=settings.log_max_bytes,
+    backup_count=settings.log_backup_count,
+)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
+        logger.info(
+            "Application startup",
+            extra={"event": "application.startup"},
+        )
         async with engine.begin() as connection:
             await connection.run_sync(Base.metadata.create_all)
         yield
     finally:
         await engine.dispose()
+        logger.info(
+            "Application shutdown",
+            extra={"event": "application.shutdown"},
+        )
 
 
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(RequestLoggingMiddleware)
 
 app.mount(
     "/static",

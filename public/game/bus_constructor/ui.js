@@ -1,9 +1,37 @@
 const GAME_POSITION_LABELS = Object.freeze({
-    Goalkeeper: 'Вратарь',
-    Defender: 'Защитник',
-    Midfielder: 'Полузащитник',
-    Attacker: 'Нападающий'
+    Goalkeeper: { full: 'Вратарь', short: 'ВРТ' },
+    Defender: { full: 'Защитник', short: 'ЗАЩ' },
+    Midfielder: { full: 'Полузащитник', short: 'ПЗ' },
+    Attacker: { full: 'Нападающий', short: 'НАП' }
 });
+
+const SURNAME_PARTICLES = new Set([
+    'аль', 'бен', 'бин', 'ван', 'да', 'де', 'делла', 'ден', 'дер',
+    'ди', 'дос', 'ду', 'ибн', 'ла', 'ле', 'мак', 'фон', 'эль'
+]);
+
+function getPlayerSurname(fullName) {
+    const nameParts = String(fullName || '')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+    if (nameParts.length <= 1) return nameParts[0] || 'Игрок';
+
+    if (nameParts[0].endsWith('.')) {
+        return nameParts.slice(1).join(' ');
+    }
+
+    let surnameStart = nameParts.length - 1;
+    for (let index = 1; index < nameParts.length - 1; index += 1) {
+        if (SURNAME_PARTICLES.has(nameParts[index].toLowerCase())) {
+            surnameStart = index;
+            break;
+        }
+    }
+
+    return nameParts.slice(surnameStart).join(' ');
+}
 
 class BusSceneUI {
     constructor() {
@@ -133,13 +161,17 @@ class BusSceneUI {
         }
 
         const name = player.name_ru || player.name_en || 'Игрок';
-        const position = GAME_POSITION_LABELS[player.position]
+        const surname = getPlayerSurname(name);
+        const positionLabels = GAME_POSITION_LABELS[player.position];
+        const fullPosition = positionLabels?.full
             || player.position
             || 'Без позиции';
+        const shortPosition = positionLabels?.short || fullPosition;
 
-        details.querySelector('.player-card__name').textContent = name;
-        details.querySelector('.player-card__position').textContent = position;
-        card.title = `${name} · ${position}`;
+        details.querySelector('.player-card__name').textContent = surname;
+        details.querySelector('.player-card__position').textContent = shortPosition;
+        card.title = `${name} · ${fullPosition}`;
+        card.setAttribute('aria-label', `${name}, ${fullPosition}`);
     }
 
     reloadPortraits() {

@@ -21,10 +21,10 @@ const IDENTITY_REVEAL_DELAY = 350;
 const PHOTO_LOAD_TIMEOUT = 5000;
 const START_PACK_SIZE = 11;
 const ROSTER_GROUPS = [
-    { key: 'Goalkeeper', title: 'Вратари' },
-    { key: 'Defender', title: 'Защитники' },
-    { key: 'Midfielder', title: 'Полузащитники' },
-    { key: 'Attacker', title: 'Нападающие' }
+    { key: 'Goalkeeper', title: 'Вратари', short: 'ВРТ' },
+    { key: 'Defender', title: 'Защитники', short: 'ЗАЩ' },
+    { key: 'Midfielder', title: 'Полузащитники', short: 'ПЗ' },
+    { key: 'Attacker', title: 'Нападающие', short: 'НАП' }
 ];
 
 export class HomeController {
@@ -33,6 +33,7 @@ export class HomeController {
         authApi,
         chestsApi,
         teamApi,
+        lineupApi,
         playerPortraits,
         session,
         location = window.location
@@ -41,6 +42,7 @@ export class HomeController {
         this.authApi = authApi;
         this.chestsApi = chestsApi;
         this.teamApi = teamApi;
+        this.lineupApi = lineupApi;
         this.playerPortraits = playerPortraits;
         this.session = session;
         this.location = location;
@@ -53,6 +55,7 @@ export class HomeController {
             user: null,
             chests: [],
             roster: [],
+            lineup: null,
             notice: {
                 type: '',
                 text: ''
@@ -80,41 +83,18 @@ export class HomeController {
         return this.state.user?.username || 'Игрок';
     }
 
-    get visiblePlayers() {
-        return this.state.roster.slice(0, 4);
-    }
-
-    get emptyPreviewSlots() {
-        return Math.max(0, 4 - this.visiblePlayers.length);
-    }
-
-    get additionalPlayersCount() {
-        return Math.max(0, this.state.roster.length - 4);
-    }
-
-    get additionalPlayersLabel() {
-        const count = this.additionalPlayersCount;
-        const lastDigit = count % 10;
-        const lastTwoDigits = count % 100;
-
-        if (lastDigit === 1 && lastTwoDigits !== 11) {
-            return 'игрок';
-        }
-
-        if (lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14)) {
-            return 'игрока';
-        }
-
-        return 'игроков';
-    }
-
     get rosterGroups() {
-        return ROSTER_GROUPS.map((group) => ({
-            ...group,
-            players: this.state.roster.filter(
+        return ROSTER_GROUPS.map((group) => {
+            const players = this.state.roster.filter(
                 (player) => player.positionKey === group.key
-            )
-        }));
+            );
+
+            return {
+                ...group,
+                players,
+                representative: players[0] || null
+            };
+        });
     }
 
     get squadStatus() {
@@ -123,20 +103,86 @@ export class HomeController {
         return 'Стартовая команда готова';
     }
 
-    isChestReceived(chestNumber) {
-        const chest = this.state.chests[chestNumber - 1];
-        return Boolean(chest?.revealed_at);
+    get lineupSlots() {
+        const lineup = this.state.lineup;
+        if (!lineup) return [];
+
+        return Array.from(
+            { length: lineup.requiredPlayers },
+            (_, index) => ({
+                number: index + 1,
+                label: String(index + 1).padStart(2, '0'),
+                isOccupied: index < lineup.placedPlayers
+            })
+        );
+    }
+
+    get lineupProgressPercent() {
+        const lineup = this.state.lineup;
+        if (!lineup?.requiredPlayers) return 0;
+
+        return Math.min(
+            100,
+            Math.round(
+                (lineup.placedPlayers / lineup.requiredPlayers) * 100
+            )
+        );
+    }
+
+    get starterContracts() {
+        return Array.from({ length: START_PACK_SIZE }, (_, index) => {
+            const number = index + 1;
+            const chest = this.state.chests[index];
+            const contractState = chest?.revealed_at
+                ? 'received'
+                : chest?.status === 'opened'
+                    ? 'pending'
+                    : 'locked';
+            const stateLabels = {
+                locked: 'закрыт',
+                pending: 'ожидает просмотра',
+                received: 'получен'
+            };
+
+            return {
+                number,
+                label: String(number).padStart(2, '0'),
+                state: contractState,
+                ariaLabel: `Контракт ${number}, ${stateLabels[contractState]}`
+            };
+        });
+    }
+
+    get receivedChestCount() {
+        return this.state.chests.filter(
+            (chest) => Boolean(chest.revealed_at)
+        ).length;
+    }
+
+    get chestProgressPercent() {
+        return Math.round(
+            (this.receivedChestCount / START_PACK_SIZE) * 100
+        );
     }
 
     get chestButtonLabel() {
         if (this.state.chest.isOpening) return 'Открываем…';
         if (this.state.chest.isComplete) return 'Получено';
-        if (this.state.chest.isOpen) return 'Показать игроков';
-        return 'Открыть 11 сундуков';
+        if (this.state.chest.isOpen) return 'Продолжить';
+        return 'Открыть набор';
     }
 
     get currentReward() {
         return this.state.reveal.players[this.state.reveal.index] || null;
+    }
+
+    get rewardProgressPercent() {
+        const totalRewards = this.state.reveal.players.length;
+        if (totalRewards === 0) return 0;
+
+        return Math.round(
+            ((this.state.reveal.index + 1) / totalRewards) * 100
+        );
     }
 
     get rewardButtonLabel() {
@@ -160,7 +206,8 @@ export class HomeController {
             this.state.user = await this.authApi.getProfile(token);
             await Promise.all([
                 this.refreshChests(token),
-                this.refreshTeam(token)
+                this.refreshTeam(token),
+                this.refreshLineupSummary(token)
             ]);
         } catch (error) {
             if (this.handleUnauthorized(error)) return;
@@ -184,6 +231,16 @@ export class HomeController {
         this.state.roster = footballers.map(
             (footballer) => this.normalizeFootballer(footballer)
         );
+    }
+
+    async refreshLineupSummary(token = this.session.getToken()) {
+        const summary = await this.lineupApi.getSummary(token);
+        this.state.lineup = {
+            busId: summary.bus_id,
+            placedPlayers: summary.placed_players,
+            requiredPlayers: summary.required_players,
+            isReady: summary.is_ready
+        };
     }
 
     applyChestState(chests) {
@@ -529,15 +586,24 @@ export class HomeController {
         return {
             state: this.state,
             displayName: this.vue.computed(() => this.displayName),
-            visiblePlayers: this.vue.computed(() => this.visiblePlayers),
-            emptyPreviewSlots: this.vue.computed(() => this.emptyPreviewSlots),
-            additionalPlayersCount: this.vue.computed(() => this.additionalPlayersCount),
-            additionalPlayersLabel: this.vue.computed(() => this.additionalPlayersLabel),
             rosterGroups: this.vue.computed(() => this.rosterGroups),
             squadStatus: this.vue.computed(() => this.squadStatus),
-            isChestReceived: this.isChestReceived.bind(this),
+            lineupSlots: this.vue.computed(() => this.lineupSlots),
+            lineupProgressPercent: this.vue.computed(
+                () => this.lineupProgressPercent
+            ),
+            starterContracts: this.vue.computed(() => this.starterContracts),
+            receivedChestCount: this.vue.computed(
+                () => this.receivedChestCount
+            ),
+            chestProgressPercent: this.vue.computed(
+                () => this.chestProgressPercent
+            ),
             chestButtonLabel: this.vue.computed(() => this.chestButtonLabel),
             currentReward: this.vue.computed(() => this.currentReward),
+            rewardProgressPercent: this.vue.computed(
+                () => this.rewardProgressPercent
+            ),
             rewardButtonLabel: this.vue.computed(() => this.rewardButtonLabel),
             toggleProfileMenu: this.toggleProfileMenu.bind(this),
             openRoster: this.openRoster.bind(this),

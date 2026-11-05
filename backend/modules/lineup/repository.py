@@ -3,7 +3,7 @@
 from collections.abc import Mapping
 from datetime import UTC, datetime
 
-from sqlalchemy import case, select, update
+from sqlalchemy import case, func, select, update
 from sqlalchemy.dialects.sqlite import insert
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -47,6 +47,10 @@ class FootballerNotOwnedError(LineupRepositoryError):
 
 class LineupWriteError(LineupRepositoryError):
     """Raised when footballer placements cannot be persisted."""
+
+
+class LineupReadError(LineupRepositoryError):
+    """Raised when footballer placements cannot be read."""
 
 
 def _validate_user_id(user_id: int) -> None:
@@ -148,6 +152,27 @@ async def get_user_bus(
         await db.rollback()
         raise UserBusReadError(
             "Не удалось получить автобус пользователя"
+        ) from error
+
+
+async def count_user_lineup_slots(
+    db: AsyncSession,
+    user_id: int,
+) -> int:
+    """Return the number of occupied bus slots for a user."""
+
+    _validate_lineup_user_id(user_id)
+    statement = select(func.count(UserFootballer.id)).where(
+        UserFootballer.user_id == user_id,
+        UserFootballer.slot_id.is_not(None),
+    )
+
+    try:
+        return (await db.scalar(statement)) or 0
+    except SQLAlchemyError as error:
+        await db.rollback()
+        raise LineupReadError(
+            "Не удалось получить готовность расстановки"
         ) from error
 
 

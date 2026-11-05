@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#121316">
+    <meta name="theme-color" content="#101419">
     <meta name="description" content="Главная страница Angry Football">
     <title>Angry Football</title>
     <link rel="stylesheet" href="./src/home.css">
@@ -62,38 +62,64 @@
                     :class="{ 'chest-card--open': state.chest.isOpen }"
                 >
                     <div class="chest-copy">
-                        <p class="eyebrow">Стартовый пак</p>
-                        <h2>11 стартовых сундуков</h2>
-
-                        <div class="chest-list" aria-label="Одиннадцать стартовых сундуков">
-                            <span
-                                v-for="chestNumber in 11"
-                                :key="chestNumber"
-                                class="chest-list__item"
-                                :class="{
-                                    'chest-list__item--received': isChestReceived(chestNumber)
-                                }"
-                                :aria-label="isChestReceived(chestNumber)
-                                    ? `Сундук ${chestNumber}, получен`
-                                    : `Сундук ${chestNumber}`"
+                        <header class="chest-pack-header">
+                            <h2>Стартовый набор</h2>
+                            <div
+                                class="chest-pack-counter"
+                                :aria-label="`Получено контрактов: ${receivedChestCount} из 11`"
                             >
-                                <span>Сундук {{ chestNumber }}</span>
-                                <strong
-                                    v-if="isChestReceived(chestNumber)"
-                                    class="chest-list__check"
+                                <strong>{{ receivedChestCount }} / 11</strong>
+                                <span>Получено</span>
+                            </div>
+                        </header>
+
+                        <div class="chest-contracts" aria-label="Одиннадцать стартовых контрактов">
+                            <span
+                                v-for="contract in starterContracts"
+                                :key="contract.number"
+                                class="chest-contract"
+                                :class="`chest-contract--${contract.state}`"
+                                role="img"
+                                :aria-label="contract.ariaLabel"
+                            >
+                                <strong class="chest-contract__number">{{ contract.label }}</strong>
+                                <span
+                                    v-if="contract.state === 'received'"
+                                    class="chest-contract__check"
                                     aria-hidden="true"
-                                >✓</strong>
+                                >✓</span>
+                                <span
+                                    v-else-if="contract.state === 'pending'"
+                                    class="chest-contract__pending"
+                                    aria-hidden="true"
+                                ></span>
                             </span>
                         </div>
 
-                        <button
-                            class="primary-button"
-                            type="button"
-                            :disabled="state.chest.isOpening || state.chest.isComplete"
-                            @click="openChest"
-                        >
-                            {{ chestButtonLabel }}
-                        </button>
+                        <div class="chest-pack-actions">
+                            <div class="chest-pack-progress">
+                                <div
+                                    class="chest-pack-progress__track"
+                                    role="progressbar"
+                                    aria-label="Получение стартовых контрактов"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100"
+                                    :aria-valuenow="chestProgressPercent"
+                                >
+                                    <span :style="{ width: `${chestProgressPercent}%` }"></span>
+                                </div>
+                                <strong>{{ chestProgressPercent }}%</strong>
+                            </div>
+
+                            <button
+                                class="primary-button"
+                                type="button"
+                                :disabled="state.chest.isOpening || state.chest.isComplete"
+                                @click="openChest"
+                            >
+                                {{ chestButtonLabel }}
+                            </button>
+                        </div>
 
                         <p
                             v-if="state.notice.text"
@@ -110,49 +136,43 @@
                 <article class="section-card squad-card">
                     <div class="card-heading">
                         <div>
-                            <p class="eyebrow">Боевой состав</p>
                             <h2>Состав</h2>
                         </div>
                         <span class="counter">{{ state.roster.length }} / 11</span>
                     </div>
 
-                    <div class="player-stack" aria-label="Полученные игроки">
-                        <div
-                            v-for="player in visiblePlayers"
-                            :key="player.id"
-                            class="mini-player"
+                    <div class="position-grid" aria-label="Состав по позициям">
+                        <article
+                            v-for="group in rosterGroups"
+                            :key="group.key"
+                            class="position-card"
+                            :class="{ 'position-card--empty': !group.representative }"
+                            :aria-label="`${group.title}: ${group.players.length}`"
                         >
-                            <span class="mini-player__position">{{ player.shortPosition }}</span>
-                            <div class="mini-player__portrait">
+                            <header class="position-card__header">
+                                <span>{{ group.short }}</span>
+                                <strong>{{ group.players.length }}</strong>
+                            </header>
+                            <div class="position-card__portrait">
                                 <img
-                                    v-if="player.portrait && !player.imageFailed"
-                                    :src="player.portrait"
-                                    :alt="`Фотография ${player.name}`"
+                                    v-if="group.representative?.portrait
+                                        && !group.representative.imageFailed"
+                                    :src="group.representative.portrait"
+                                    :alt="`Фотография ${group.representative.name}`"
                                     loading="lazy"
                                     decoding="async"
                                     referrerpolicy="no-referrer"
-                                    @error="handlePlayerImageError(player)"
+                                    @error="handlePlayerImageError(group.representative)"
                                 >
-                                <span v-else aria-hidden="true">{{ player.initials }}</span>
+                                <span v-else-if="group.representative" aria-hidden="true">
+                                    {{ group.representative.initials }}
+                                </span>
+                                <span v-else aria-hidden="true">+</span>
                             </div>
-                            <strong class="mini-player__name">{{ player.name }}</strong>
-                            <span class="mini-player__number">№ {{ player.number }}</span>
-                        </div>
-                        <div
-                            v-for="slot in emptyPreviewSlots"
-                            :key="`empty-${slot}`"
-                            class="mini-player mini-player--empty"
-                            aria-hidden="true"
-                        >
-                            <span>+</span>
-                        </div>
-                        <div
-                            class="mini-player mini-player--more"
-                            :aria-label="`Ещё ${additionalPlayersCount} ${additionalPlayersLabel}`"
-                        >
-                            <strong class="mini-player__more-count">+{{ additionalPlayersCount }}</strong>
-                            <span class="mini-player__more-label">{{ additionalPlayersLabel }}</span>
-                        </div>
+                            <strong class="position-card__name">
+                                {{ group.representative?.name || 'Нет игроков' }}
+                            </strong>
+                        </article>
                     </div>
 
                     <div class="card-footer">
@@ -166,20 +186,63 @@
                 <article class="section-card constructor-card">
                     <div class="card-heading">
                         <div>
-                            <p class="eyebrow">Гараж</p>
                             <h2>Конструктор</h2>
                         </div>
-                        <span class="status-dot">Проект</span>
+                        <span v-if="state.lineup" class="counter">
+                            {{ state.lineup.placedPlayers }} /
+                            {{ state.lineup.requiredPlayers }}
+                        </span>
                     </div>
 
-                    <div class="constructor-summary">
-                        <span>Схема защиты</span>
-                        <strong>Автобус</strong>
-                        <span>Готовность: 0 из 10</span>
+                    <div
+                        class="constructor-summary"
+                        :class="{ 'constructor-summary--ready': state.lineup?.isReady }"
+                    >
+                        <div
+                            v-if="lineupSlots.length"
+                            class="constructor-slots"
+                            aria-hidden="true"
+                        >
+                            <span
+                                v-for="slot in lineupSlots"
+                                :key="slot.number"
+                                class="constructor-slot"
+                                :class="{ 'constructor-slot--occupied': slot.isOccupied }"
+                            >
+                                <span class="constructor-slot__number">{{ slot.label }}</span>
+                                <span class="constructor-slot__dot"></span>
+                            </span>
+                        </div>
+                        <img
+                            class="constructor-summary__bus"
+                            src="./src/images/Karkas_1.png"
+                            alt="Каркас автобуса"
+                            loading="lazy"
+                            decoding="async"
+                        >
                     </div>
+
+                    <div v-if="state.lineup" class="constructor-progress">
+                        <div class="constructor-progress__labels">
+                            <span>Готовность</span>
+                            <strong>{{ lineupProgressPercent }}%</strong>
+                        </div>
+                        <div
+                            class="constructor-progress__track"
+                            role="progressbar"
+                            aria-label="Готовность автобуса"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            :aria-valuenow="lineupProgressPercent"
+                        >
+                            <span :style="{ width: `${lineupProgressPercent}%` }"></span>
+                        </div>
+                    </div>
+                    <p v-else class="constructor-unavailable">
+                        Готовность недоступна
+                    </p>
 
                     <div class="card-footer">
-                        <span>Размести игроков перед воротами</span>
                         <a class="text-button" href="../game/bus_constructor/index.html">Открыть</a>
                     </div>
                 </article>
@@ -257,25 +320,33 @@
             aria-modal="true"
             aria-labelledby="reward-reveal-title"
         >
-            <article
-                :key="currentReward.chestId"
-                class="reward-reveal__card"
-            >
+            <article class="reward-reveal__card">
                 <header class="reward-reveal__header">
-                    <span>
+                    <strong>
                         {{ state.reveal.index + 1 }} / {{ state.reveal.players.length }}
-                    </span>
+                    </strong>
+                    <div
+                        class="reward-reveal__progress"
+                        role="progressbar"
+                        aria-label="Прогресс открытия стартового набора"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        :aria-valuenow="rewardProgressPercent"
+                    >
+                        <span :style="{ width: `${rewardProgressPercent}%` }"></span>
+                    </div>
                     <button
                         type="button"
                         :disabled="state.reveal.isSaving"
                         aria-label="Закрыть показ игроков"
                         @click="closeRewardReveal"
                     >
-                        Закрыть
+                        ×
                     </button>
                 </header>
 
                 <div
+                    :key="currentReward.chestId"
                     class="reward-reveal__photo"
                     :class="{
                         'reward-reveal__photo--identity-visible': state.reveal.isIdentityVisible,
@@ -366,7 +437,7 @@
 
     <noscript>Для игры необходимо включить JavaScript.</noscript>
 
-    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="./src/vendor/vue.global.prod.js"></script>
     <script type="module" src="./src/home.js"></script>
 </body>
 </html>

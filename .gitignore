@@ -57,6 +57,7 @@ yarn-error.log*
 Thumbs.db
 *.log
 *.pid
+/logs/
 
 # Local prototypes and backup assets
 public/PlayerRagdollTest/

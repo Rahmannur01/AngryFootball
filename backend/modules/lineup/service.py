@@ -22,6 +22,20 @@ async def get_initial_lineup(
     return user_bus, footballers
 
 
+async def get_lineup_summary(
+    db: AsyncSession,
+    user_id: int,
+) -> tuple[UserBus, int]:
+    """Return the selected bus and current placement count."""
+
+    user_bus = await get_or_create_user_bus(db, user_id)
+    placed_players = await repository.count_user_lineup_slots(
+        db,
+        user_id,
+    )
+    return user_bus, placed_players
+
+
 async def get_or_create_user_bus(
     db: AsyncSession,
     user_id: int,

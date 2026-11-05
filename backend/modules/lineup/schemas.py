@@ -50,6 +50,19 @@ class InitialLineupResponse(BaseModel):
     players: list[LineupFootballerResponse]
 
 
+class LineupSummaryResponse(BaseModel):
+    bus_id: PositiveInt
+    placed_players: int = Field(
+        ge=0,
+        le=rules.MAX_LINEUP_SIZE,
+    )
+    required_players: int = Field(
+        default=rules.MAX_LINEUP_SIZE,
+        ge=1,
+    )
+    is_ready: bool
+
+
 class FootballerSlot(BaseModel):
     model_config = ConfigDict(from_attributes=True, extra="forbid")
 
