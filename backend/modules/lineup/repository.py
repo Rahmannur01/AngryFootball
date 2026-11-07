@@ -4,7 +4,8 @@ from collections.abc import Mapping
 from datetime import UTC, datetime
 
 from sqlalchemy import case, func, select, update
-from sqlalchemy.dialects.sqlite import insert
+from sqlalchemy.dialects.postgresql import insert as postgresql_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -204,8 +205,18 @@ async def upsert_user_bus(
             )
         _, current_bus_id = bus_selection
 
+        dialect_name = db.get_bind().dialect.name
+        if dialect_name == "postgresql":
+            insert_statement = postgresql_insert(UserBus)
+        elif dialect_name == "sqlite":
+            insert_statement = sqlite_insert(UserBus)
+        else:
+            raise UserBusWriteError(
+                f"Неподдерживаемая база данных: {dialect_name}"
+            )
+
         statement = (
-            insert(UserBus)
+            insert_statement
             .values(
                 user_id=user_id,
                 bus_id=bus_id,

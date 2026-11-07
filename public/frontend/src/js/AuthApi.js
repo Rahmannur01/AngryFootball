@@ -56,6 +56,22 @@ export class AuthApi {
         });
     }
 
+    async loginWithGoogle(accessToken) {
+        return this.request('/oauth/google', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ access_token: accessToken })
+        });
+    }
+
+    async loginWithTelegram(authData) {
+        return this.request('/oauth/telegram', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(authData)
+        });
+    }
+
     async request(path, options = {}) {
         let response;
 

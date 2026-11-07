@@ -50,7 +50,6 @@ export class HomeController {
         this.photoTimerId = null;
         this.state = vue.reactive({
             isLoading: true,
-            isProfileMenuOpen: false,
             isRosterVisible: false,
             user: null,
             chests: [],
@@ -276,12 +275,7 @@ export class HomeController {
         );
     }
 
-    toggleProfileMenu() {
-        this.state.isProfileMenuOpen = !this.state.isProfileMenuOpen;
-    }
-
     openRoster() {
-        this.state.isProfileMenuOpen = false;
         this.state.isRosterVisible = true;
     }
 
@@ -605,7 +599,6 @@ export class HomeController {
                 () => this.rewardProgressPercent
             ),
             rewardButtonLabel: this.vue.computed(() => this.rewardButtonLabel),
-            toggleProfileMenu: this.toggleProfileMenu.bind(this),
             openRoster: this.openRoster.bind(this),
             closeRoster: this.closeRoster.bind(this),
             logout: this.logout.bind(this),

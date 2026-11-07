@@ -20,7 +20,9 @@ class GameApi {
     }
 
     async request(path, options = {}) {
-        const response = await fetch(path, {
+        const basePath = window.BASE_PATH || '';
+        const url = path.startsWith('/') ? `${basePath}${path}` : path;
+        const response = await fetch(url, {
             ...options,
             headers: {
                 Authorization: `Bearer ${this.getAccessToken()}`,

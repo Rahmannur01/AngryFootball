@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль - Angry Football</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0A0D12 0%, #161D2B 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .profile-container {
+            background: #0F131C;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .avatar-section {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #1E2636;
+            border: 3px solid #38BDF8;
+        }
+
+        .avatar-upload {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 36px;
+            height: 36px;
+            background: #38BDF8;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .avatar-upload:hover {
+            transform: scale(1.1);
+        }
+
+        .avatar-upload input {
+            display: none;
+        }
+
+        .profile-info {
+            margin-bottom: 30px;
+        }
+
+        .info-item {
+            background: #161D2B;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            color: #e0e0e0;
+        }
+
+        .provider-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        .provider-google {
+            background: #4285F4;
+            color: white;
+        }
+
+        .provider-telegram {
+            background: #0088cc;
+            color: white;
+        }
+
+        .provider-email {
+            background: #6EE7B7;
+            color: #0A0D12;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 999px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #38BDF8;
+            color: #0A0D12;
+        }
+
+        .btn-primary:hover {
+            background: #0ea5e9;
+        }
+
+        .profile-actions {
+            display: grid;
+            gap: 12px;
+        }
+
+        .btn-secondary {
+            border: 1px solid #334155;
+            background: transparent;
+            color: #cbd5e1;
+        }
+
+        .btn-secondary:hover {
+            background: #1e293b;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .error {
+            background: #dc2626;
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+        }
+
+        @media (max-width: 640px) {
+            .profile-container {
+                padding: 24px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div id="loading" class="loading">
+            <p>Загрузка профиля...</p>
+        </div>
+
+        <div id="error" style="display: none;" class="error"></div>
+
+        <div id="profile-content" style="display: none;">
+            <div class="profile-header">
+                <div class="avatar-section">
+                    <img id="avatar" class="avatar" src="./src/images/portrets/Player_1_portret.png" alt="Avatar">
+                    <label class="avatar-upload">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        <input type="file" id="avatar-input" accept="image/*">
+                    </label>
+                </div>
+                <h1 id="username"></h1>
+                <p class="subtitle" id="created-date"></p>
+            </div>
+
+            <div class="profile-info">
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value" id="email">-</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Способ входа</div>
+                    <div class="info-value">
+                        <span id="provider-badge"></span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="profile-actions">
+                <button class="btn btn-primary" onclick="location.href='./home.html'">
+                    Вернуться в игру
+                </button>
+                <button class="btn btn-secondary" onclick="logout()">
+                    Выйти из профиля
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/angryfootball/api/auth';
+        const TOKEN_KEY = 'angry-football.access-token';
+
+        async function loadProfile() {
+            const token = sessionStorage.getItem(TOKEN_KEY);
+            if (!token) {
+                location.href = './index.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load profile');
+                }
+
+                const user = await response.json();
+                displayProfile(user);
+            } catch (error) {
+                showError('Не удалось загрузить профиль');
+            }
+        }
+
+        function displayProfile(user) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('profile-content').style.display = 'block';
+
+            document.getElementById('username').textContent = user.username;
+            document.getElementById('email').textContent = user.email || '-';
+            document.getElementById('created-date').textContent = user.created_date
+                ? new Date(user.created_date).toLocaleDateString('ru-RU')
+                : '';
+
+            if (user.avatar_url) {
+                document.getElementById('avatar').src = user.avatar_url;
+            }
+
+            // Provider badge
+            const providerBadge = document.getElementById('provider-badge');
+            if (user.provider === 'google') {
+                providerBadge.textContent = 'Google';
+                providerBadge.className = 'provider-badge provider-google';
+            } else if (user.provider === 'telegram') {
+                providerBadge.textContent = 'Telegram';
+                providerBadge.className = 'provider-badge provider-telegram';
+            } else {
+                providerBadge.textContent = 'Email';
+                providerBadge.className = 'provider-badge provider-email';
+            }
+
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+
+        function logout() {
+            sessionStorage.removeItem(TOKEN_KEY);
+            location.href = './index.html';
+        }
+
+        // Avatar upload
+        document.getElementById('avatar-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const token = sessionStorage.getItem(TOKEN_KEY);
+
+            try {
+                const response = await fetch(`${API_URL}/avatar/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Upload failed');
+                }
+
+                const data = await response.json();
+                document.getElementById('avatar').src = data.avatar_url;
+            } catch (error) {
+                alert('Не удалось загрузить аватар');
+            }
+        });
+
+        loadProfile();
+    </script>
+</body>
+</html>

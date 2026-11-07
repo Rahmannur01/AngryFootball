@@ -12,14 +12,16 @@ export class HomeApplication {
             throw new Error('Vue не загружен');
         }
 
+        const basePath = window.BASE_PATH || '';
+
         this.vue = vue;
         this.selector = selector;
         this.controller = new HomeController({
             vue,
-            authApi: new AuthApi(),
-            chestsApi: new ChestsApi(),
-            teamApi: new TeamApi(),
-            lineupApi: new LineupApi(),
+            authApi: new AuthApi({ baseUrl: `${basePath}/api/auth` }),
+            chestsApi: new ChestsApi({ baseUrl: `${basePath}/api/chests` }),
+            teamApi: new TeamApi({ baseUrl: `${basePath}/api/team` }),
+            lineupApi: new LineupApi({ baseUrl: `${basePath}/api/lineup` }),
             playerPortraits: new PlayerPortraits(),
             session: new AuthSession()
         });

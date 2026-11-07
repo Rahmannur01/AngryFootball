@@ -169,7 +169,56 @@ export class AuthController {
             togglePassword: this.togglePassword.bind(this),
             passwordType: this.passwordType.bind(this),
             passwordToggleLabel: this.passwordToggleLabel.bind(this),
-            submit: this.submit.bind(this)
+            submit: this.submit.bind(this),
+            loginWithGoogle: this.loginWithGoogle.bind(this),
+            showTelegramButton: () => (
+                !window.DEV_MODE && Boolean(window.TELEGRAM_BOT_USERNAME)
+            )
         };
+    }
+
+    async loginWithGoogle() {
+        if (!window.GOOGLE_CLIENT_ID) {
+            this.state.notice = {
+                type: 'error',
+                text: 'Вход через Google не настроен.'
+            };
+            return;
+        }
+
+        if (typeof window.google === 'undefined') {
+            this.state.notice = {
+                type: 'error',
+                text: 'Google SDK не загружен'
+            };
+            return;
+        }
+
+        try {
+            const client = window.google.accounts.oauth2.initTokenClient({
+                client_id: window.GOOGLE_CLIENT_ID,
+                scope: 'email profile',
+                callback: async (response) => {
+                    try {
+                        const data = await this.api.loginWithGoogle(
+                            response.access_token
+                        );
+                        this.session.setToken(data.access_token);
+                        this.location.assign('./home.html');
+                    } catch (error) {
+                        this.state.notice = {
+                            type: 'error',
+                            text: 'Не удалось войти через Google'
+                        };
+                    }
+                }
+            });
+            client.requestAccessToken();
+        } catch (error) {
+            this.state.notice = {
+                type: 'error',
+                text: 'Ошибка Google OAuth'
+            };
+        }
     }
 }

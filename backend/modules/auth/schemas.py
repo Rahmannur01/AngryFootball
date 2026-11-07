@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Self
 
 from pydantic import (
@@ -23,7 +24,7 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    username: str | None = None
+    user_id: int | None = None
 
 
 class User(BaseModel):
@@ -31,6 +32,9 @@ class User(BaseModel):
     username: str
     email: str | None = None
     disabled: bool | None = None
+    avatar_url: str | None = None
+    provider: str | None = None
+    created_date: datetime
 
 
 class CreateUser(BaseModel):
@@ -79,4 +83,21 @@ class CreateUser(BaseModel):
 
 
 class UserInDB(User):
-    hashed_password: str
+    hashed_password: str | None = None
+
+
+class OAuthToken(BaseModel):
+    """OAuth access token"""
+    access_token: str
+
+
+class TelegramAuthData(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    id: int
+    first_name: str
+    auth_date: int
+    hash: str
+    last_name: str | None = None
+    username: str | None = None
+    photo_url: str | None = None

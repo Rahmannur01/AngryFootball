@@ -2,10 +2,19 @@
 .env
 .env.*
 !.env.example
+.envrc
+.direnv/
+secrets/
 *.pem
 *.key
 *.p12
 *.pfx
+*.kdbx
+id_rsa
+id_ecdsa
+id_ed25519
+credentials.json
+service-account*.json
 .aws/
 .aws
 
@@ -44,6 +53,13 @@ dist/
 *.sqlite.*
 *.sqlite3
 *.sqlite3.*
+*.dump
+*.backup
+*.bak
+*.orig
+*~
+/backups/
+/data/
 
 # JavaScript tooling
 node_modules/
@@ -62,3 +78,4 @@ Thumbs.db
 # Local prototypes and backup assets
 public/PlayerRagdollTest/
 public/game/bus_constructor/assets_backup/
+/static/avatars/

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#101419">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E">
     <meta name="description" content="Главная страница Angry Football">
     <title>Angry Football</title>
     <link rel="stylesheet" href="./src/home.css">
@@ -21,19 +22,13 @@
                     <strong>{{ displayName }}</strong>
                     <span>Уровень 1</span>
                 </div>
-                <button
+                <a
                     class="profile-button"
-                    type="button"
-                    :aria-expanded="state.isProfileMenuOpen"
-                    aria-label="Открыть меню профиля"
-                    @click="toggleProfileMenu"
+                    href="./profile.html"
+                    aria-label="Открыть профиль"
                 >
                     Профиль
-                </button>
-
-                <div v-if="state.isProfileMenuOpen" class="profile-menu">
-                    <button type="button" @click="logout">Выйти</button>
-                </div>
+                </a>
             </div>
         </header>
 
@@ -437,6 +432,7 @@
 
     <noscript>Для игры необходимо включить JavaScript.</noscript>
 
+    <script>window.BASE_PATH = '/angryfootball';</script>
     <script src="./src/vendor/vue.global.prod.js"></script>
     <script type="module" src="./src/home.js"></script>
 </body>

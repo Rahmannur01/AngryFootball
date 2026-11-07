@@ -287,3 +287,65 @@ noscript {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* OAuth Section */
+.oauth-section {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #27272a;
+}
+
+.oauth-divider {
+    text-align: center;
+    color: #71717a;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.oauth-buttons {
+    display: grid;
+    gap: 12px;
+}
+
+#telegram-login-container {
+    display: grid;
+    place-items: center;
+    margin-top: 12px;
+}
+
+#telegram-login-container iframe {
+    max-width: 100%;
+}
+
+.oauth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: #18181b;
+    border: 1px solid #27272a;
+    border-radius: 999px;
+    color: #e4e4e7;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.oauth-btn:hover {
+    background: #27272a;
+    border-color: #3f3f46;
+}
+
+.oauth-btn svg {
+    flex-shrink: 0;
+}
+
+.oauth-btn--google:hover {
+    border-color: #4285F4;
+}
+
+.oauth-btn--telegram:hover {
+    border-color: #0088cc;
+}

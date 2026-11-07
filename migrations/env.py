@@ -1,10 +1,14 @@
+import asyncio
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
+from sqlalchemy.engine import Connection, make_url
+from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
 import backend.modules.model_registry  # Registers all mapped tables.
+from backend.core.config import settings
 from backend.database import Base
 
 # this is the Alembic Config object, which provides
@@ -17,6 +21,13 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
+
+# Always migrate the same database that the application uses. Escaping percent
+# signs is required because Alembic stores this value in ConfigParser.
+config.set_main_option(
+    "sqlalchemy.url",
+    settings.database_url.replace("%", "%%"),
+)
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -36,7 +47,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = settings.database_url
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -48,9 +59,31 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def run_migrations_online() -> None:
-    """Run migrations in 'online' mode."""
+def do_run_migrations(connection: Connection) -> None:
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        compare_type=True,
+    )
 
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+async def run_async_migrations() -> None:
+    connectable = async_engine_from_config(
+        config.get_section(config.config_ini_section, {}),
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
+
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
+
+    await connectable.dispose()
+
+
+def run_sync_migrations() -> None:
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -58,13 +91,19 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-        )
+        do_run_migrations(connection)
 
-        with context.begin_transaction():
-            context.run_migrations()
+    connectable.dispose()
+
+
+def run_migrations_online() -> None:
+    """Run migrations with a sync or async driver as configured."""
+
+    driver_name = make_url(settings.database_url).drivername
+    if driver_name.endswith(("+asyncpg", "+aiosqlite")):
+        asyncio.run(run_async_migrations())
+    else:
+        run_sync_migrations()
 
 
 if context.is_offline_mode():

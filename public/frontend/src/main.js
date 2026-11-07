@@ -5,4 +5,6 @@ const application = new AuthApplication({
     selector: '#app'
 });
 
-application.mount();
+application.mount().catch((error) => {
+    console.error('Failed to start authentication application:', error);
+});

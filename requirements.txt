@@ -1,0 +1,13 @@
+sqlalchemy[asyncio]>=2.0,<2.1
+alembic
+asyncpg
+aiosqlite
+pydantic
+pydantic-settings
+pydantic[email]
+fastapi
+pwdlib[argon2]
+pyjwt
+python-multipart
+uvicorn[standard]
+httpx
