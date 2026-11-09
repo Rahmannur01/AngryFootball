@@ -38,7 +38,7 @@ services:
       - EMAIL_CODE_MAX_SENDS_PER_HOUR=${EMAIL_CODE_MAX_SENDS_PER_HOUR:-5}
       - REGISTRATION_TOKEN_EXPIRE_MINUTES=${REGISTRATION_TOKEN_EXPIRE_MINUTES:-15}
     ports:
-      - "127.0.0.1:8001:8000"
+      - "${BACKEND_BIND_ADDRESS:-127.0.0.1}:8001:8000"
     depends_on:
       postgres:
         condition: service_healthy
