@@ -16,7 +16,10 @@ from backend.database import Base, engine
 
 
 GAMEPLAY_REVISION = "a4d7e9c2f105"
-MERGED_OAUTH_REVISION = "cfa21eae9cee"
+MERGED_EXTERNAL_AUTH_REVISION = "cfa21eae9cee"
+PRE_EXTERNAL_AUTH_REMOVAL_REVISION = "71d2dfb9d9b7"
+PRE_EMAIL_VERIFICATION_REVISION = "8c6f0a2d4b19"
+EMAIL_VERIFICATION_TABLE = "email_verification_challenges"
 
 
 def _inspect_schema(connection: Connection) -> tuple[bool, str | None]:
@@ -52,19 +55,23 @@ def _inspect_schema(connection: Connection) -> tuple[bool, str | None]:
         if columns
     }
 
-    if missing_tables:
+    unsupported_missing_tables = missing_tables.difference(
+        {EMAIL_VERIFICATION_TABLE}
+    )
+    if unsupported_missing_tables:
         raise RuntimeError(
             "Database has an unversioned partial schema; refusing to stamp. "
-            f"Missing tables: {sorted(missing_tables)}; "
+            f"Missing tables: {sorted(unsupported_missing_tables)}; "
             f"missing columns: {missing_columns}"
         )
 
-    oauth_columns = {"google_id", "telegram_id", "provider", "avatar_url"}
+    profile_columns = {"avatar_url"}
+    external_auth_columns = {"google_id", "telegram_id", "provider"}
     users_extra_columns = actual_columns["users"].difference(
         expected_tables["users"]
     )
     if (
-        missing_columns == {"users": oauth_columns}
+        missing_columns == {"users": profile_columns}
         and not users_extra_columns
     ):
         return False, GAMEPLAY_REVISION
@@ -74,13 +81,18 @@ def _inspect_schema(connection: Connection) -> tuple[bool, str | None]:
             f"Missing columns: {missing_columns}"
         )
 
-    if users_extra_columns == {"country_code"}:
-        return False, MERGED_OAUTH_REVISION
+    if users_extra_columns == external_auth_columns:
+        return False, PRE_EXTERNAL_AUTH_REMOVAL_REVISION
+    if users_extra_columns == external_auth_columns | {"country_code"}:
+        return False, MERGED_EXTERNAL_AUTH_REVISION
     if users_extra_columns:
         raise RuntimeError(
             "Database has unexpected legacy users columns; refusing to stamp: "
             f"{sorted(users_extra_columns)}"
         )
+
+    if missing_tables == {EMAIL_VERIFICATION_TABLE}:
+        return False, PRE_EMAIL_VERIFICATION_REVISION
 
     return False, "head"
 

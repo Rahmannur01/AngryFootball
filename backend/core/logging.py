@@ -37,6 +37,8 @@ class JsonFormatter(logging.Formatter):
         "user_id",
         "bus_id",
         "chest_count",
+        "reason",
+        "attempt_count",
         "exception_type",
         "stack_trace",
     )

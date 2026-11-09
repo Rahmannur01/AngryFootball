@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15-alpine
@@ -9,7 +7,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
       POSTGRES_DB: ${POSTGRES_DB:-angryfootball}
     ports:
-      - "5434:5432"
+      - "127.0.0.1:5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -24,15 +22,23 @@ services:
     environment:
       - DATABASE_URL=${DATABASE_URL:?DATABASE_URL must be set in .env}
       - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set in .env}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
-      - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME:-}
-      - DEV_MODE=${DEV_MODE:-false}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-1440}
-      - ROOT_PATH=/angryfootball
+      - ROOT_PATH=${ROOT_PATH:-}
+      - SMTP_HOST=${SMTP_HOST:?SMTP_HOST must be set in .env}
+      - SMTP_PORT=${SMTP_PORT:-465}
+      - SMTP_USERNAME=${SMTP_USERNAME:?SMTP_USERNAME must be set in .env}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:?SMTP_PASSWORD must be set in .env}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL:?SMTP_FROM_EMAIL must be set in .env}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-Angry Football}
+      - SMTP_USE_SSL=${SMTP_USE_SSL:-true}
+      - SMTP_USE_TLS=${SMTP_USE_TLS:-false}
+      - EMAIL_CODE_EXPIRE_MINUTES=${EMAIL_CODE_EXPIRE_MINUTES:-10}
+      - EMAIL_CODE_RESEND_SECONDS=${EMAIL_CODE_RESEND_SECONDS:-60}
+      - EMAIL_CODE_MAX_ATTEMPTS=${EMAIL_CODE_MAX_ATTEMPTS:-5}
+      - EMAIL_CODE_MAX_SENDS_PER_HOUR=${EMAIL_CODE_MAX_SENDS_PER_HOUR:-5}
+      - REGISTRATION_TOKEN_EXPIRE_MINUTES=${REGISTRATION_TOKEN_EXPIRE_MINUTES:-15}
     ports:
-      - "8001:8000"
+      - "127.0.0.1:8001:8000"
     depends_on:
       postgres:
         condition: service_healthy

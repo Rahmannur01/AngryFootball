@@ -1,4 +1,7 @@
-import re
+import hashlib
+import hmac
+import secrets
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
@@ -10,13 +13,12 @@ from pwdlib import PasswordHash
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.core.config import settings
+from backend.core.logging import logger
 from backend.database import DBSession
-from backend.modules.auth import repository, schemas
-from backend.modules.auth import rules as auth_rules
+from backend.modules.auth import mailer, repository, schemas
+from backend.modules.auth.models import EmailVerificationChallenge
 from backend.modules.auth.validators import (
-    normalize_email,
     normalize_username,
-    validate_email_length,
     validate_password,
     validate_username,
 )
@@ -54,7 +56,7 @@ async def authenticate_user(
         verify_password(password, DUMMY_HASH)
         return False
 
-    # OAuth users don't have password
+    # Legacy accounts without a local password cannot authenticate.
     if user.hashed_password is None:
         return False
 
@@ -67,12 +69,46 @@ async def create_new_user(
     db: AsyncSession,
     new_user: schemas.CreateUser,
 ):
+    challenge_id, email, verification_digest = _decode_registration_token(
+        new_user.registration_token
+    )
+    challenge = await repository.get_email_challenge_by_id(
+        db,
+        challenge_id,
+        for_update=True,
+    )
+    if (
+        challenge is None
+        or challenge.email != email
+        or challenge.code_digest != verification_digest
+        or challenge.verified_at is None
+        or challenge.consumed_at is not None
+    ):
+        logger.warning(
+            "Registration confirmation rejected",
+            extra={
+                "event": "auth.registration_rejected",
+                "reason": "invalid_confirmation",
+            },
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Подтверждение email недействительно или уже использовано.",
+        )
+
     existing_user = await repository.get_user_by_username_or_email(
         db,
         new_user.username,
-        str(new_user.email),
+        email,
     )
     if existing_user is not None:
+        logger.warning(
+            "Registration identity conflict",
+            extra={
+                "event": "auth.registration_rejected",
+                "reason": "identity_conflict",
+            },
+        )
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=(
@@ -84,11 +120,18 @@ async def create_new_user(
     user = await repository.add_new_user(
         db,
         new_user.username,
-        str(new_user.email),
+        email,
         hashed_password,
     )
 
     if user is None:
+        logger.warning(
+            "Registration identity conflict",
+            extra={
+                "event": "auth.registration_rejected",
+                "reason": "identity_conflict",
+            },
+        )
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=(
@@ -96,113 +139,300 @@ async def create_new_user(
             ),
         )
 
+    challenge.consumed_at = _utc_now()
     try:
         await chests_service.grant_start_chests(db, user.id)
     except chests_repository.ChestRepositoryError as error:
         await db.rollback()
+        logger.exception(
+            "Starter chests creation failed during registration",
+            extra={
+                "event": "auth.registration_failed",
+                "reason": "starter_chests_failed",
+            },
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Не удалось создать стартовые сундуки.",
         ) from error
 
+    logger.info(
+        "User registration completed",
+        extra={
+            "event": "auth.registration_completed",
+            "user_id": user.id,
+        },
+    )
     return user
 
 
-def _oauth_username_base(preferred: str, provider_id: str) -> str:
-    candidate = re.sub(r"[^\w-]", "", preferred, flags=re.UNICODE)
-    candidate = candidate[:auth_rules.USERNAME_MAX_LENGTH]
-    if len(candidate) < auth_rules.USERNAME_MIN_LENGTH:
-        candidate = f"user{provider_id}"
-    return candidate[:auth_rules.USERNAME_MAX_LENGTH]
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
-async def _available_oauth_username(
-    db: AsyncSession,
-    preferred: str,
-    provider_id: str,
-) -> str:
-    base = _oauth_username_base(preferred, provider_id)
-    if await repository.get_user_by_username(db, base) is None:
-        return base
+def _code_digest(challenge_id: str, code: str) -> str:
+    payload = f"{challenge_id}:{code}".encode()
+    return hmac.new(
+        settings.secret_key.encode(),
+        payload,
+        hashlib.sha256,
+    ).hexdigest()
 
-    for counter in range(2, 10_000):
-        suffix = str(counter)
-        candidate = (
-            f"{base[:auth_rules.USERNAME_MAX_LENGTH - len(suffix)]}{suffix}"
-        )
-        if await repository.get_user_by_username(db, candidate) is None:
-            return candidate
 
-    raise HTTPException(
-        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-        detail="Не удалось подобрать свободный никнейм.",
+def _decoy_challenge_id(email: str) -> str:
+    digest = hmac.new(
+        settings.secret_key.encode(),
+        f"registration-decoy:{email}".encode(),
+        hashlib.sha256,
+    ).digest()
+    return str(uuid.UUID(bytes=digest[:16], version=4))
+
+
+def _email_code_sent(challenge_id: str) -> schemas.EmailCodeSent:
+    return schemas.EmailCodeSent(
+        challenge_id=challenge_id,
+        expires_in_seconds=settings.email_code_expire_minutes * 60,
+        resend_after_seconds=settings.email_code_resend_seconds,
     )
 
 
-async def get_or_create_oauth_user(
-    db: AsyncSession,
-    user_info: dict,
-):
-    provider = user_info["provider"]
-    provider_id = str(user_info["provider_id"])
+def _registration_token(
+    challenge_id: str,
+    email: str,
+    verification_digest: str,
+) -> str:
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.registration_token_expire_minutes
+    )
+    return jwt.encode(
+        {
+            "sub": challenge_id,
+            "email": email,
+            "purpose": "registration",
+            "verification": verification_digest,
+            "exp": expires_at,
+        },
+        settings.secret_key,
+        algorithm=settings.algorithm,
+    )
 
-    if provider == "google":
-        user = await repository.get_user_by_google_id(db, provider_id)
-    elif provider == "telegram":
-        user = await repository.get_user_by_telegram_id(db, int(provider_id))
+
+def _decode_registration_token(token: str) -> tuple[str, str, str]:
+    exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Подтверждение email недействительно или истекло.",
+    )
+    try:
+        payload = jwt.decode(
+            token,
+            settings.secret_key,
+            algorithms=[settings.algorithm],
+        )
+        challenge_id = payload.get("sub")
+        email = payload.get("email")
+        verification_digest = payload.get("verification")
+        if (
+            payload.get("purpose") != "registration"
+            or not isinstance(challenge_id, str)
+            or not isinstance(email, str)
+            or not isinstance(verification_digest, str)
+        ):
+            raise exception
+    except (InvalidTokenError, ValueError):
+        raise exception
+    return challenge_id, email, verification_digest
+
+
+async def request_registration_code(
+    db: AsyncSession,
+    email: str,
+) -> schemas.EmailCodeSent:
+    logger.info(
+        "Registration code requested",
+        extra={"event": "auth.registration_code_requested"},
+    )
+    if await repository.get_user_by_email(db, email) is not None:
+        logger.info(
+            "Registration code delivery suppressed",
+            extra={
+                "event": "auth.registration_code_suppressed",
+                "reason": "existing_account",
+            },
+        )
+        return _email_code_sent(_decoy_challenge_id(email))
+
+    now = _utc_now()
+    challenge = await repository.get_email_challenge_by_email(
+        db,
+        email,
+        for_update=True,
+    )
+
+    if challenge is None:
+        challenge = EmailVerificationChallenge(
+            id=str(uuid.uuid4()),
+            email=email,
+            code_digest="",
+            failed_attempts=0,
+            send_count=1,
+            window_started_at=now,
+            last_sent_at=now,
+            expires_at=now,
+        )
+        db.add(challenge)
     else:
+        resend_at = challenge.last_sent_at + timedelta(
+            seconds=settings.email_code_resend_seconds
+        )
+        if now < resend_at:
+            logger.info(
+                "Registration code delivery suppressed",
+                extra={
+                    "event": "auth.registration_code_suppressed",
+                    "reason": "resend_cooldown",
+                },
+            )
+            return _email_code_sent(challenge.id)
+
+        if now >= challenge.window_started_at + timedelta(hours=1):
+            challenge.window_started_at = now
+            challenge.send_count = 0
+            challenge.failed_attempts = 0
+        if challenge.failed_attempts >= settings.email_code_max_attempts:
+            logger.warning(
+                "Registration code delivery suppressed",
+                extra={
+                    "event": "auth.registration_code_suppressed",
+                    "reason": "attempt_limit",
+                    "attempt_count": challenge.failed_attempts,
+                },
+            )
+            return _email_code_sent(challenge.id)
+        if challenge.send_count >= settings.email_code_max_sends_per_hour:
+            logger.warning(
+                "Registration code delivery suppressed",
+                extra={
+                    "event": "auth.registration_code_suppressed",
+                    "reason": "send_limit",
+                },
+            )
+            return _email_code_sent(challenge.id)
+        challenge.send_count += 1
+        challenge.last_sent_at = now
+
+    code = f"{secrets.randbelow(1_000_000):06d}"
+    challenge.code_digest = _code_digest(challenge.id, code)
+    challenge.expires_at = now + timedelta(
+        minutes=settings.email_code_expire_minutes
+    )
+    challenge.verified_at = None
+    challenge.consumed_at = None
+
+    try:
+        await mailer.send_registration_code(email, code)
+        await db.commit()
+    except mailer.MailDeliveryError as error:
+        await db.rollback()
+        logger.exception(
+            "Registration email delivery failed",
+            extra={"event": "auth.registration_email_failed"},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Не удалось отправить код. Попробуйте позже.",
+        ) from error
+
+    logger.info(
+        "Registration code email sent",
+        extra={"event": "auth.registration_code_sent"},
+    )
+    return _email_code_sent(challenge.id)
+
+
+async def verify_registration_code(
+    db: AsyncSession,
+    challenge_id: str,
+    code: str,
+) -> schemas.EmailVerified:
+    challenge = await repository.get_email_challenge_by_id(
+        db,
+        challenge_id,
+        for_update=True,
+    )
+    now = _utc_now()
+    if challenge is None or challenge.expires_at < now:
+        logger.warning(
+            "Registration code rejected",
+            extra={
+                "event": "auth.registration_code_rejected",
+                "reason": "invalid_or_expired",
+            },
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Неизвестный OAuth-провайдер.",
+            detail="Код недействителен или срок его действия истёк.",
         )
-
-    if user is not None:
-        return user
-
-    email = user_info.get("email")
-    if email and user_info.get("email_verified"):
-        email = validate_email_length(normalize_email(email))
-    else:
-        email = None
-    if provider == "google" and email and user_info.get("email_verified"):
-        user = await repository.get_user_by_email(db, email)
-        if user is not None:
-            user.google_id = provider_id
-            user.provider = user.provider or provider
-            user.avatar_url = user.avatar_url or user_info.get("avatar_url")
-            await db.commit()
-            return user
-
-    username = await _available_oauth_username(
-        db,
-        user_info.get("username") or f"user{provider_id}",
-        provider_id,
-    )
-    user = await repository.add_new_user(
-        db,
-        username=username,
-        email=email,
-        google_id=provider_id if provider == "google" else None,
-        telegram_id=int(provider_id) if provider == "telegram" else None,
-        provider=provider,
-        avatar_url=user_info.get("avatar_url"),
-    )
-    if user is None:
+    if challenge.verified_at is not None or challenge.consumed_at is not None:
+        logger.warning(
+            "Registration code rejected",
+            extra={
+                "event": "auth.registration_code_rejected",
+                "reason": "already_used",
+            },
+        )
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Не удалось создать пользователя OAuth.",
+            detail="Этот код уже использован.",
+        )
+    if challenge.failed_attempts >= settings.email_code_max_attempts:
+        logger.warning(
+            "Registration code rejected",
+            extra={
+                "event": "auth.registration_code_rejected",
+                "reason": "attempt_limit",
+                "attempt_count": challenge.failed_attempts,
+            },
+        )
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Превышено количество попыток. Запросите новый код позже.",
         )
 
-    try:
-        await chests_service.grant_start_chests(db, user.id)
-    except chests_repository.ChestRepositoryError as error:
-        await db.rollback()
+    expected_digest = _code_digest(challenge.id, code)
+    if not hmac.compare_digest(challenge.code_digest, expected_digest):
+        challenge.failed_attempts += 1
+        await db.commit()
+        logger.warning(
+            "Registration code rejected",
+            extra={
+                "event": "auth.registration_code_rejected",
+                "reason": "incorrect_code",
+                "attempt_count": challenge.failed_attempts,
+            },
+        )
+        if challenge.failed_attempts >= settings.email_code_max_attempts:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Превышено количество попыток. Запросите новый код позже.",
+            )
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Не удалось создать стартовые сундуки.",
-        ) from error
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Неверный код.",
+        )
 
-    return user
+    challenge.verified_at = now
+    await db.commit()
+    logger.info(
+        "Registration email verified",
+        extra={"event": "auth.registration_email_verified"},
+    )
+    return schemas.EmailVerified(
+        registration_token=_registration_token(
+            challenge.id,
+            challenge.email,
+            challenge.code_digest,
+        )
+    )
 
 
 def create_access_token(
@@ -257,7 +487,6 @@ async def get_current_user(
         email=current_user.email,
         disabled=current_user.disabled,
         avatar_url=current_user.avatar_url,
-        provider=current_user.provider,
         created_date=current_user.created_date,
     )
 

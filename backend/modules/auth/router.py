@@ -7,13 +7,40 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from backend.core.config import settings
 from backend.database import DBSession
-from backend.modules.auth import oauth, repository, schemas, service
+from backend.modules.auth import repository, schemas, service
 
 
 router = APIRouter(
     prefix="/api/auth",
     tags=["Auth"],
 )
+
+
+@router.post(
+    "/registration/email",
+    response_model=schemas.EmailCodeSent,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def send_registration_email_code(
+    db: DBSession,
+    request: schemas.RegistrationEmailRequest,
+) -> schemas.EmailCodeSent:
+    return await service.request_registration_code(db, str(request.email))
+
+
+@router.post(
+    "/registration/verify",
+    response_model=schemas.EmailVerified,
+)
+async def verify_registration_email_code(
+    db: DBSession,
+    request: schemas.VerifyEmailCode,
+) -> schemas.EmailVerified:
+    return await service.verify_registration_code(
+        db,
+        request.challenge_id,
+        request.code,
+    )
 
 
 @router.post(
@@ -78,54 +105,6 @@ async def read_users_me(
     ],
 ) -> schemas.User:
     return current_user
-
-
-@router.post("/oauth/google", response_model=schemas.Token)
-async def google_oauth_login(
-    db: DBSession,
-    token_data: schemas.OAuthToken,
-) -> schemas.Token:
-    user_info = await oauth.GoogleOAuth.get_user_info(token_data.access_token)
-    user = await service.get_or_create_oauth_user(db, user_info)
-
-    # Create access token
-    access_token_expires = timedelta(
-        minutes=settings.access_token_expire_minutes
-    )
-    access_token = service.create_access_token(
-        data={"sub": str(user.id)},
-        expires_delta=access_token_expires,
-    )
-
-    return schemas.Token(
-        access_token=access_token,
-        token_type="bearer",
-    )
-
-
-@router.post("/oauth/telegram", response_model=schemas.Token)
-async def telegram_oauth_login(
-    db: DBSession,
-    auth_data: schemas.TelegramAuthData,
-) -> schemas.Token:
-    user_info = await oauth.TelegramOAuth.verify_telegram_auth(
-        auth_data.model_dump(exclude_none=True)
-    )
-    user = await service.get_or_create_oauth_user(db, user_info)
-
-    # Create access token
-    access_token_expires = timedelta(
-        minutes=settings.access_token_expire_minutes
-    )
-    access_token = service.create_access_token(
-        data={"sub": str(user.id)},
-        expires_delta=access_token_expires,
-    )
-
-    return schemas.Token(
-        access_token=access_token,
-        token_type="bearer",
-    )
 
 
 @router.post("/avatar/upload")

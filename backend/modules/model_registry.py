@@ -1,6 +1,6 @@
 """Import every ORM model so SQLAlchemy and Alembic can discover them."""
 
-from backend.modules.auth.models import UserDB
+from backend.modules.auth.models import EmailVerificationChallenge, UserDB
 from backend.modules.catalog.models import Club, Footballer
 from backend.modules.chests.models import ChestReward, UserChest
 from backend.modules.lineup.models import Bus, UserBus
@@ -11,6 +11,7 @@ __all__ = (
     "Bus",
     "Club",
     "Footballer",
+    "EmailVerificationChallenge",
     "UserDB",
     "UserChest",
     "UserBus",

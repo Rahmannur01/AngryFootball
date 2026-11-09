@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Профиль - Angry Football</title>
+    <script src="../base-path.js"></script>
     <style>
         * {
             margin: 0;
@@ -95,30 +96,6 @@
         .info-value {
             font-size: 16px;
             color: #e0e0e0;
-        }
-
-        .provider-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 500;
-            margin-top: 8px;
-        }
-
-        .provider-google {
-            background: #4285F4;
-            color: white;
-        }
-
-        .provider-telegram {
-            background: #0088cc;
-            color: white;
-        }
-
-        .provider-email {
-            background: #6EE7B7;
-            color: #0A0D12;
         }
 
         .btn {
@@ -220,13 +197,6 @@
                     <div class="info-value" id="email">-</div>
                 </div>
 
-                <div class="info-item">
-                    <div class="info-label">Способ входа</div>
-                    <div class="info-value">
-                        <span id="provider-badge"></span>
-                    </div>
-                </div>
-
             </div>
 
             <div class="profile-actions">
@@ -241,7 +211,8 @@
     </div>
 
     <script>
-        const API_URL = '/angryfootball/api/auth';
+        const BASE_PATH = window.BASE_PATH || '';
+        const API_URL = `${BASE_PATH}/api/auth`;
         const TOKEN_KEY = 'angry-football.access-token';
 
         async function loadProfile() {
@@ -281,19 +252,6 @@
 
             if (user.avatar_url) {
                 document.getElementById('avatar').src = user.avatar_url;
-            }
-
-            // Provider badge
-            const providerBadge = document.getElementById('provider-badge');
-            if (user.provider === 'google') {
-                providerBadge.textContent = 'Google';
-                providerBadge.className = 'provider-badge provider-google';
-            } else if (user.provider === 'telegram') {
-                providerBadge.textContent = 'Telegram';
-                providerBadge.className = 'provider-badge provider-telegram';
-            } else {
-                providerBadge.textContent = 'Email';
-                providerBadge.className = 'provider-badge provider-email';
             }
 
         }

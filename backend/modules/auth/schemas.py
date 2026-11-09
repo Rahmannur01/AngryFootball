@@ -5,6 +5,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     EmailStr,
+    Field,
     field_validator,
     model_validator,
 )
@@ -33,7 +34,6 @@ class User(BaseModel):
     email: str | None = None
     disabled: bool | None = None
     avatar_url: str | None = None
-    provider: str | None = None
     created_date: datetime
 
 
@@ -41,9 +41,9 @@ class CreateUser(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     username: str
-    email: EmailStr
     password: str
     password_repeat: str
+    registration_token: str
 
     @field_validator("username", mode="before")
     @classmethod
@@ -56,19 +56,6 @@ class CreateUser(BaseModel):
     @classmethod
     def validate_username_field(cls, value: str) -> str:
         return validate_username(value)
-
-    @field_validator("email", mode="before")
-    @classmethod
-    def normalize_email_field(cls, value: object) -> object:
-        if isinstance(value, str):
-            return normalize_email(value)
-        return value
-
-    @field_validator("email")
-    @classmethod
-    def validate_email_field(cls, value: EmailStr) -> EmailStr:
-        validate_email_length(str(value))
-        return value
 
     @field_validator("password", "password_repeat")
     @classmethod
@@ -86,18 +73,37 @@ class UserInDB(User):
     hashed_password: str | None = None
 
 
-class OAuthToken(BaseModel):
-    """OAuth access token"""
-    access_token: str
+class RegistrationEmailRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    email: EmailStr
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def normalize_email_field(cls, value: object) -> object:
+        if isinstance(value, str):
+            return normalize_email(value)
+        return value
+
+    @field_validator("email")
+    @classmethod
+    def validate_email_field(cls, value: EmailStr) -> EmailStr:
+        validate_email_length(str(value))
+        return value
 
 
-class TelegramAuthData(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+class EmailCodeSent(BaseModel):
+    challenge_id: str
+    expires_in_seconds: int
+    resend_after_seconds: int
 
-    id: int
-    first_name: str
-    auth_date: int
-    hash: str
-    last_name: str | None = None
-    username: str | None = None
-    photo_url: str | None = None
+
+class VerifyEmailCode(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    challenge_id: str
+    code: str = Field(pattern=r"^\d{6}$")
+
+
+class EmailVerified(BaseModel):
+    registration_token: str

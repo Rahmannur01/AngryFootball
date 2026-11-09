@@ -74,10 +74,9 @@ async def lifespan(app: FastAPI):
         )
 
 
-# ContestBot removes the public ``/angryfootball`` prefix before proxying the
-# request here. Keep the prefix in settings for generated public URLs, but do
-# not set it as Starlette's routing root: mounted applications such as
-# StaticFiles would otherwise only match paths that still contain the prefix.
+# A reverse proxy may remove a public prefix before forwarding requests here.
+# Keep that prefix in settings only for generated public URLs. In standalone
+# mode it is empty, so the same application is available directly at ``/``.
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(RequestLoggingMiddleware)
 
@@ -100,15 +99,7 @@ app.include_router(lineup_router)
 
 @app.get("/")
 async def root():
+    public_prefix = settings.root_path.rstrip("/")
     return RedirectResponse(
-        url=f"{settings.root_path}/static/frontend/index.html"
+        url=f"{public_prefix}/static/frontend/index.html"
     )
-
-
-@app.get("/api/config")
-async def get_config():
-    return {
-        "google_client_id": settings.google_client_id,
-        "telegram_bot_username": settings.telegram_bot_username,
-        "dev_mode": settings.dev_mode
-    }

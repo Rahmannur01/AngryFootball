@@ -7,10 +7,15 @@ export class AuthValidator {
     static USERNAME_PATTERN = /^[\p{L}\p{N}_-]+$/u;
     static EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    validate(mode, form) {
-        return mode === 'login'
-            ? this.validateLogin(form)
-            : this.validateRegistration(form);
+    validate(mode, form, registrationStep = 'details') {
+        if (mode === 'login') return this.validateLogin(form);
+        if (registrationStep === 'email') {
+            return this.validateRegistrationEmail(form);
+        }
+        if (registrationStep === 'code') {
+            return this.validateRegistrationCode(form);
+        }
+        return this.validateRegistrationDetails(form);
     }
 
     validateLogin(form) {
@@ -22,11 +27,24 @@ export class AuthValidator {
         return errors;
     }
 
-    validateRegistration(form) {
+    validateRegistrationEmail(form) {
+        const errors = {};
+        this.validateEmail(form.email, errors);
+        return errors;
+    }
+
+    validateRegistrationCode(form) {
+        const errors = {};
+        if (!/^\d{6}$/.test(form.code)) {
+            errors.code = 'Введи шестизначный код из письма.';
+        }
+        return errors;
+    }
+
+    validateRegistrationDetails(form) {
         const errors = {};
 
         this.validateUsername(form.username, errors);
-        this.validateEmail(form.email, errors);
         this.validatePassword(form.password, errors);
 
         if (!form.passwordConfirmation) {

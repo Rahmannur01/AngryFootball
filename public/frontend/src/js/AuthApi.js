@@ -12,12 +12,6 @@ export class AuthApi {
         this.baseUrl = baseUrl;
     }
 
-    async submit(mode, credentials) {
-        return mode === 'login'
-            ? this.login(credentials)
-            : this.register(credentials);
-    }
-
     async login({ identifier, password }) {
         const body = new URLSearchParams({
             username: identifier,
@@ -33,7 +27,30 @@ export class AuthApi {
         });
     }
 
-    async register({ username, email, password, passwordConfirmation }) {
+    async requestRegistrationCode(email) {
+        return this.request('/registration/email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email })
+        });
+    }
+
+    async verifyRegistrationCode(challengeId, code) {
+        return this.request('/registration/verify', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                challenge_id: challengeId,
+                code
+            })
+        });
+    }
+
+    async register({ username, password, passwordConfirmation, registrationToken }) {
         return this.request('/register', {
             method: 'POST',
             headers: {
@@ -41,9 +58,9 @@ export class AuthApi {
             },
             body: JSON.stringify({
                 username,
-                email,
                 password,
-                password_repeat: passwordConfirmation
+                password_repeat: passwordConfirmation,
+                registration_token: registrationToken
             })
         });
     }
@@ -53,22 +70,6 @@ export class AuthApi {
             headers: {
                 Authorization: `Bearer ${accessToken}`
             }
-        });
-    }
-
-    async loginWithGoogle(accessToken) {
-        return this.request('/oauth/google', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ access_token: accessToken })
-        });
-    }
-
-    async loginWithTelegram(authData) {
-        return this.request('/oauth/telegram', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(authData)
         });
     }
 

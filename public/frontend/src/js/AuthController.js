@@ -8,6 +8,9 @@ export class AuthController {
         this.state = vue.reactive({
             isCheckingSession: true,
             mode: 'login',
+            registrationStep: 'email',
+            registrationChallengeId: '',
+            registrationToken: '',
             forms: {
                 login: {
                     identifier: '',
@@ -16,6 +19,7 @@ export class AuthController {
                 register: {
                     username: '',
                     email: '',
+                    code: '',
                     password: '',
                     passwordConfirmation: ''
                 }
@@ -65,7 +69,10 @@ export class AuthController {
 
     get submitLabel() {
         if (this.state.isSubmitting) return 'Проверяем…';
-        return this.state.mode === 'login' ? 'Войти' : 'Создать аккаунт';
+        if (this.state.mode === 'login') return 'Войти';
+        if (this.state.registrationStep === 'email') return 'Получить код';
+        if (this.state.registrationStep === 'code') return 'Подтвердить код';
+        return 'Создать аккаунт';
     }
 
     setMode(mode) {
@@ -102,7 +109,11 @@ export class AuthController {
     }
 
     async submit() {
-        const errors = this.validator.validate(this.state.mode, this.activeForm);
+        const errors = this.validator.validate(
+            this.state.mode,
+            this.activeForm,
+            this.state.registrationStep
+        );
         this.state.errors = errors;
         this.state.notice = { type: '', text: '' };
 
@@ -114,20 +125,12 @@ export class AuthController {
         this.state.isSubmitting = true;
 
         try {
-            const token = await this.api.submit(
-                this.state.mode,
-                { ...this.activeForm }
-            );
-            this.session.setToken(token.access_token);
-
-            const user = await this.api.getProfile(token.access_token);
-            this.state.user = user;
-            this.clearPasswords();
-            this.state.notice = {
-                type: 'success',
-                text: `Добро пожаловать, ${user.username}.`
-            };
-            this.location.assign('./home.html');
+            if (this.state.mode === 'login') {
+                const token = await this.api.login({ ...this.activeForm });
+                await this.finishAuthentication(token);
+            } else {
+                await this.submitRegistrationStep();
+            }
         } catch (error) {
             if (error.status === 401) {
                 this.session.clear();
@@ -145,6 +148,99 @@ export class AuthController {
         } finally {
             this.state.isSubmitting = false;
         }
+    }
+
+    async submitRegistrationStep() {
+        const form = this.state.forms.register;
+
+        if (this.state.registrationStep === 'email') {
+            const result = await this.api.requestRegistrationCode(form.email);
+            this.state.registrationChallengeId = result.challenge_id;
+            this.state.registrationStep = 'code';
+            this.state.notice = {
+                type: 'success',
+                text: 'Если адрес доступен для регистрации, код отправлен на почту.'
+            };
+            await this.focusField('#verification-code');
+            return;
+        }
+
+        if (this.state.registrationStep === 'code') {
+            const result = await this.api.verifyRegistrationCode(
+                this.state.registrationChallengeId,
+                form.code
+            );
+            this.state.registrationToken = result.registration_token;
+            this.state.registrationStep = 'details';
+            this.state.notice = {
+                type: 'success',
+                text: 'Email подтверждён. Теперь создай профиль.'
+            };
+            await this.focusField('#username');
+            return;
+        }
+
+        const token = await this.api.register({
+            ...form,
+            registrationToken: this.state.registrationToken
+        });
+        await this.finishAuthentication(token);
+    }
+
+    async finishAuthentication(token) {
+        this.session.setToken(token.access_token);
+        const user = await this.api.getProfile(token.access_token);
+        this.state.user = user;
+        this.clearPasswords();
+        this.state.notice = {
+            type: 'success',
+            text: `Добро пожаловать, ${user.username}.`
+        };
+        this.location.assign('./home.html');
+    }
+
+    async resendCode() {
+        if (this.state.isSubmitting) return;
+
+        this.state.isSubmitting = true;
+        this.state.errors = {};
+        try {
+            const form = this.state.forms.register;
+            const result = await this.api.requestRegistrationCode(form.email);
+            this.state.registrationChallengeId = result.challenge_id;
+            form.code = '';
+            this.state.notice = {
+                type: 'success',
+                text: 'Если адрес доступен для регистрации, новый код отправлен на почту.'
+            };
+        } catch (error) {
+            this.state.notice = {
+                type: 'error',
+                text: error.message || 'Не удалось повторно отправить код.'
+            };
+        } finally {
+            this.state.isSubmitting = false;
+        }
+    }
+
+    changeRegistrationEmail() {
+        this.state.registrationStep = 'email';
+        this.state.registrationChallengeId = '';
+        this.state.registrationToken = '';
+        this.state.forms.register.code = '';
+        this.state.errors = {};
+        this.state.notice = { type: '', text: '' };
+        this.focusField('#email');
+    }
+
+    normalizeCode() {
+        const form = this.state.forms.register;
+        form.code = form.code.replace(/\D/g, '').slice(0, 6);
+        this.clearError('code');
+    }
+
+    focusField(selector) {
+        return this.vue.nextTick(() => document.querySelector(selector)?.focus());
     }
 
     clearPasswords() {
@@ -169,56 +265,10 @@ export class AuthController {
             togglePassword: this.togglePassword.bind(this),
             passwordType: this.passwordType.bind(this),
             passwordToggleLabel: this.passwordToggleLabel.bind(this),
-            submit: this.submit.bind(this),
-            loginWithGoogle: this.loginWithGoogle.bind(this),
-            showTelegramButton: () => (
-                !window.DEV_MODE && Boolean(window.TELEGRAM_BOT_USERNAME)
-            )
+            normalizeCode: this.normalizeCode.bind(this),
+            resendCode: this.resendCode.bind(this),
+            changeRegistrationEmail: this.changeRegistrationEmail.bind(this),
+            submit: this.submit.bind(this)
         };
-    }
-
-    async loginWithGoogle() {
-        if (!window.GOOGLE_CLIENT_ID) {
-            this.state.notice = {
-                type: 'error',
-                text: 'Вход через Google не настроен.'
-            };
-            return;
-        }
-
-        if (typeof window.google === 'undefined') {
-            this.state.notice = {
-                type: 'error',
-                text: 'Google SDK не загружен'
-            };
-            return;
-        }
-
-        try {
-            const client = window.google.accounts.oauth2.initTokenClient({
-                client_id: window.GOOGLE_CLIENT_ID,
-                scope: 'email profile',
-                callback: async (response) => {
-                    try {
-                        const data = await this.api.loginWithGoogle(
-                            response.access_token
-                        );
-                        this.session.setToken(data.access_token);
-                        this.location.assign('./home.html');
-                    } catch (error) {
-                        this.state.notice = {
-                            type: 'error',
-                            text: 'Не удалось войти через Google'
-                        };
-                    }
-                }
-            });
-            client.requestAccessToken();
-        } catch (error) {
-            this.state.notice = {
-                type: 'error',
-                text: 'Ошибка Google OAuth'
-            };
-        }
     }
 }

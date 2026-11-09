@@ -10,4 +10,3 @@ pwdlib[argon2]
 pyjwt
 python-multipart
 uvicorn[standard]
-httpx
